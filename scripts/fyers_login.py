@@ -30,7 +30,9 @@ def main():
     print("=" * 60)
     print("\nAfter logging in, you will be redirected to an error/blank page.")
     print("Look at the URL in your browser. It will look something like:")
-    print("https://apphelpdesk-support.github.io/nifty-analysis-agent/?auth_code=SOME_LONG_CODE&state=None\n")
+    # Derive the example from the configured redirect so it cannot go stale.
+    hint = (redirect_uri or "<FYERS_REDIRECT_URI is not set>").rstrip("/")
+    print(f"{hint}/?auth_code=SOME_LONG_CODE&state=None\n")
     
     # 2. Get auth code
     auth_code_input = input("Paste the ENTIRE redirected URL here (or just the auth_code): ").strip()
