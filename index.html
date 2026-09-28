@@ -478,8 +478,6 @@
                 <!-- BTST Sub-tabs (Only visible in Historical mode) -->
                 <div id="historical-subtabs" class="hidden flex flex-wrap gap-2 mb-6">
                     <button class="px-3 py-1 text-sm rounded-full bg-brand-100 text-brand-700 font-bold" id="subtab-tomorrow" onclick="selectTab('tomorrow')">Tomorrow</button>
-                    <button class="px-3 py-1 text-sm rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200" id="subtab-next_week" onclick="selectTab('next_week')">Next Week</button>
-                    <button class="px-3 py-1 text-sm rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200" id="subtab-next_month" onclick="selectTab('next_month')">Next Month</button>
                 </div>
                 
                 <!-- Market Closed Placeholder (Only visible in Intraday mode when closed) -->
@@ -1154,14 +1152,6 @@
             }
         }
 
-        function selectTab(tab) {
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.getElementById('tab-' + tab).classList.add('active');
-            currentTab = tab;
-            renderPrediction();
-        }
-
-        
         function calculateTopK(dateStr) {
             if (!dashboardData[dateStr] || !dashboardData[dateStr].signals) return null;
             
@@ -1320,7 +1310,6 @@
                     'z_ema_diff': 'chk-ema59',
                     'z_price_ema': 'chk-ema20',
                     'z_vol': 'chk-deltaoi',
-                    'z_atr': 'chk-stochrsi',
                     'z_vix': 'chk-vix',
                     'z_bn_rel': 'chk-divergence',
                     'chk-rsi': 'chk-rsi',
@@ -1424,7 +1413,6 @@
         function renderPrediction() {
             if (!currentResolvedDate) return;
             
-            const tf_mod = {"tomorrow": 1.0, "next_week": 1.5, "next_month": 2.5}[currentTab] || 1.0;
             const dateStr = currentResolvedDate;
             const vol = calculateMarketVolatility(dateStr);
             

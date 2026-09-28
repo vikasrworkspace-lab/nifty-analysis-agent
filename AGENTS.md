@@ -15,6 +15,41 @@ historical-analogue matching. It is NOT a web app.
   blocks, written by the agent, not mixed into the statistical tables.
 - **Config-first.** Change parameters in `config/settings.json`, not in code.
 
+## Dashboard artifacts
+
+- `index.html` is **hand-maintained and git-tracked**. It is not generated and
+  not gitignored. `scripts/export_dashboard.py` only writes `dashboard_data*.json`.
+- `dashboard_data.json` (and its per-symbol siblings) are also **git-tracked**:
+  GitHub Pages serves them directly, so the auto-loop commits them after each
+  successful intraday export.
+- Generated data caches and report output (`data/**/*.csv`, `reports/**`) are
+  gitignored and must not be committed.
+- Because the exporter backfills `data["_meta"]` on every run, a local re-export
+  can silently rewrite years of history and can **drop the most recent session**
+  if the local `data/historical/nifty.csv` cache is behind the published file.
+  Run `python scripts/update_data.py` first, and diff `_meta` plus the date-key
+  set before committing. Prefer shipping exporter code alone when the cache is
+  stale; the daily job regenerates the data in CI.
+
+## BTST daily WFO
+
+- `build_wfo_meta()` in `scripts/export_dashboard.py` is the single source of
+  truth for the BTST `_meta` contract and is unit-tested in
+  `tests/test_btst_wfo.py`. Keep the SIGNAL/NO_SIGNAL field sets identical.
+- `SIGNAL` is only emitted when the OOS edge is strictly positive **and** at
+  least one feature is selected. Never force a signal to populate the UI.
+- `NO SIGNAL` is a legitimate result, not a bug. It reports the same
+  edge/trade fields as `SIGNAL`, plus a `reason` naming the failing gate, and an
+  empty `wfo_optimal_features`. The UI must explain itself rather than render
+  silent blanks.
+- The 5-trade floor, the 45/55 selection band and the `oos_edge > 0` gate are
+  deliberate anti-overfit controls. Do not relax them to chase a signal.
+- WFO windows are 252 validation + 126 OOS observations (~1 per trading day).
+- Only the five mapped features are optimized: `z_rsi`, `z_stochrsi`,
+  `z_ema_diff`, `z_price_ema`, `z_vol`. `z_atr` is excluded because it has no
+  checkbox and no `calculateTopK` branch, so it could only be misreported.
+  Never let an unmapped feature name reach `stability` in `_meta`.
+
 ## Standard workflows
 
 - Refresh data: `python scripts/update_data.py` (run the venv python).
@@ -62,7 +97,8 @@ historical-analogue matching. It is NOT a web app.
 - Use the project venv: `.venv\Scripts\python.exe`.
 - Install new deps with `pip install <pkg>` and add to `requirements.txt`.
 - After downloading data or generating reports, do not commit the generated
-  CSVs/HTML/PDF (they are gitignored).
+  CSVs/HTML/PDF (they are gitignored). See "Dashboard artifacts" above for the
+  tracked exceptions (`index.html`, `dashboard_data*.json`).
 
 ## Report format
 

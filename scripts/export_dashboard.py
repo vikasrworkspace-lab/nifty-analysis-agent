@@ -15,6 +15,56 @@ try:
 except ImportError:
     NSELIB_AVAILABLE = False
 
+def build_wfo_meta(best_final_edge, best_final_stats, oos_edge, oos_win_rate,
+                   oos_trades, stability, val_window, oos_window,
+                   ui_boxes=None):
+    """Build the BTST ``_meta`` block for the daily WFO.
+
+    Kept as a pure function so the "SIGNAL" / "NO SIGNAL" contract can be unit
+    tested without running the full walk-forward pass (which takes ~90s and
+    needs network-backed data).
+
+    Contract:
+      * SIGNAL is only ever emitted when the OOS edge is strictly positive and
+        at least one feature was selected. Never force it.
+      * NO SIGNAL is a legitimate, fully-populated result: it reports the same
+        edge/trade figures as SIGNAL plus a human-readable ``reason`` naming
+        the gate that failed, and an empty feature list. The UI relies on this
+        to explain itself instead of rendering silent blanks.
+    """
+    common = {
+        "val_edge": round(float(best_final_edge), 4) if best_final_edge != -999 else 0,
+        "val_win_rate": round(float(best_final_stats[1] * 100), 1) if best_final_stats else 0,
+        "val_trades": int(best_final_stats[0]) if best_final_stats else 0,
+        "oos_edge": round(float(oos_edge), 4),
+        "oos_win_rate": round(float(oos_win_rate * 100), 1) if oos_trades > 0 else 0,
+        "oos_trades": int(oos_trades),
+        "stability": stability,
+        "val_window": val_window,
+        "oos_window": oos_window,
+    }
+
+    if best_final_edge > 0 and oos_edge > 0 and ui_boxes:
+        meta = dict(common)
+        meta["wfo_optimal_features"] = list(ui_boxes)
+        meta["status"] = "SIGNAL"
+        meta["reason"] = "OOS edge > 0"
+        return meta
+
+    if best_final_stats is None:
+        reason = "no feature combination cleared the 5-trade floor"
+    elif best_final_edge <= 0:
+        reason = "validation edge <= 0"
+    else:
+        reason = "OOS edge <= 0"
+
+    meta = dict(common)
+    meta["wfo_optimal_features"] = []
+    meta["status"] = "NO SIGNAL"
+    meta["reason"] = reason
+    return meta
+
+
 def process_symbol(symbol_name, db_filename):
     data_file = f"dashboard_data.json" if symbol_name == "nifty" else f"dashboard_data_{symbol_name}.json"
     data = {}
@@ -420,28 +470,41 @@ def process_symbol(symbol_name, db_filename):
         try:
             import itertools
             df_wfo = df.copy()
-            df_wfo.dropna(subset=['z_rsi', 'z_stochrsi', 'z_ema_diff', 'z_price_ema', 'z_atr', 'z_vol'], inplace=True)
+            # z_atr is intentionally excluded: it has no BTST checkbox and no
+            # calculateTopK branch, so it could only ever be selected and then
+            # misreported (it was aliased to chk-stochrsi in the UI).
+            available_features = ['z_rsi', 'z_stochrsi', 'z_ema_diff', 'z_price_ema', 'z_vol']
+            df_wfo.dropna(subset=available_features, inplace=True)
             
-            available_features = ['z_rsi', 'z_stochrsi', 'z_ema_diff', 'z_price_ema', 'z_atr', 'z_vol']
             feature_matrix = df_wfo[available_features].values
             returns_wfo = df_wfo['Return'].values
             
             n_days = len(feature_matrix)
-            eval_window = 60 # 30 for Val, 30 for OOS
+            # Daily/BTST sampling is ~1 observation per trading day, so the old
+            # 30+30 split gave the optimiser ~30 points and it almost never
+            # cleared the 5-trade floor. Use 1y validation + 6m OOS instead.
+            val_window = 252
+            oos_window = 126
+            eval_window = val_window + oos_window
+            # Days of embargo excluded from the analogue search so the match set
+            # never contains the target day or its immediate future.
+            embargo = 5
             print(f"WFO n_days after dropna: {n_days}")
+            print(f"WFO window: val={val_window} oos={oos_window} (features={len(available_features)})")
             
-            if n_days > 252 + eval_window:
+            if n_days > val_window + oos_window:
                 test_combs = []
                 for r in range(2, 6): # Min 2, max 5 features
                     test_combs.extend(list(itertools.combinations(range(len(available_features)), r)))
                 
-                # Precompute all predictions for the last 60 days to make rolling OOS instant
+                # Precompute predictions across the whole eval window so the
+                # rolling val and OOS passes never hit a missing day.
                 predictions = {c_idx: {} for c_idx in range(len(test_combs))}
                 for c_idx, comb in enumerate(test_combs):
                     mat = feature_matrix[:, comb]
                     for i in range(n_days - eval_window - 1, n_days - 1):
                         target_vec = mat[i]
-                        search_mat = mat[:i-5]
+                        search_mat = mat[:i-embargo]
                         if len(search_mat) < 50: continue
                             
                         diffs = search_mat - target_vec
@@ -477,7 +540,7 @@ def process_symbol(symbol_name, db_filename):
                     adj_edge = edge - (len(test_combs[c_idx]) * 0.01)
                     return adj_edge, total_trades, win_rate, avg_ret
         
-                oos_start = n_days - 30 - 1
+                oos_start = n_days - oos_window - 1
                 oos_end = n_days - 1
                 
                 oos_trades, oos_wins, oos_cum_ret = 0, 0, 0
@@ -485,7 +548,7 @@ def process_symbol(symbol_name, db_filename):
                 
                 # Rolling OOS Loop
                 for today_i in range(oos_start, oos_end):
-                    val_start = today_i - 30
+                    val_start = today_i - val_window
                     val_end = today_i
                     
                     best_val_edge, best_c_idx = -999, None
@@ -533,34 +596,32 @@ def process_symbol(symbol_name, db_filename):
                         for f_idx in test_combs[c_idx]:
                             feature_freq[available_features[f_idx]] += count
                 for f, freq in feature_freq.items():
-                    stability[ui_mapping.get(f, f)] = round((freq / 30) * 100, 1)
+                    # Only mapped features. Previously an unmapped f leaked its
+                    # raw name (e.g. "z_atr") into _meta, which the UI then
+                    # displayed as though it were a selected checkbox id.
+                    if f in ui_mapping:
+                        stability[ui_mapping[f]] = round((freq / oos_window) * 100, 1)
         
-                if best_final_c_idx is not None and best_final_edge > 0 and oos_edge > 0:
+                ui_boxes = None
+                if best_final_c_idx is not None:
                     best_comb = [available_features[idx] for idx in test_combs[best_final_c_idx]]
                     ui_boxes = [ui_mapping[f] for f in best_comb if f in ui_mapping]
-                    
-                    data["_meta"] = {
-                        "wfo_optimal_features": ui_boxes,
-                        "val_edge": round(float(best_final_edge), 4),
-                        "val_win_rate": round(float(best_final_stats[1]*100), 1),
-                        "val_trades": int(best_final_stats[0]),
-                        "oos_edge": round(float(oos_edge), 4),
-                        "oos_win_rate": round(float(oos_win_rate*100), 1),
-                        "oos_trades": int(oos_trades),
-                        "stability": stability,
-                        "status": "SIGNAL"
-                    }
+
+                data["_meta"] = build_wfo_meta(
+                    best_final_edge=best_final_edge,
+                    best_final_stats=best_final_stats,
+                    oos_edge=oos_edge,
+                    oos_win_rate=oos_win_rate,
+                    oos_trades=oos_trades,
+                    stability=stability,
+                    val_window=val_window,
+                    oos_window=oos_window,
+                    ui_boxes=ui_boxes,
+                )
+                if data["_meta"]["status"] == "SIGNAL":
                     print(f"WFO Phase 3B Optimal Set: {ui_boxes}")
                 else:
-                    # No edge state
-                    data["_meta"] = {
-                        "wfo_optimal_features": [],
-                        "val_edge": round(float(best_final_edge), 4) if best_final_edge != -999 else 0,
-                        "oos_edge": round(float(oos_edge), 4) if oos_trades > 0 else 0,
-                        "stability": stability,
-                        "status": "NO SIGNAL"
-                    }
-                    print("WFO Phase 3B: NO SIGNAL detected.")
+                    print(f"WFO Phase 3B: NO SIGNAL detected ({data['_meta']['reason']}).")
                     
         except Exception as e:
             print("WFO Phase 3B Failed:", e)
