@@ -144,6 +144,20 @@ class TestTradeEngineGating:
         assert "meta.reason" in body
         assert "meta.oos_edge" in body
 
+    def test_oos_reason_never_renders_a_bare_placeholder(self):
+        # A legacy payload may carry oos_edge but not oos_trades. That must
+        # degrade to prose, not to a lone '?' that reads like a broken value.
+        # Strip // comments first so prose about the placeholder cannot
+        # satisfy (or trip) the assertion.
+        body = re.sub(r"//[^\n]*", "", _body("renderPrediction"))
+        assert "ternary ? meta.oos_trades" not in body
+        assert "'?'" not in body
+        assert '"?"' not in body
+        assert "trade counts not recorded" in body
+        # The counts, when present, are still rendered.
+        assert "meta.oos_trades" in body
+        assert "meta.oos_win_rate" in body
+
     def test_hidden_fields_are_the_actionable_ones(self):
         # Entry / Stop / Targets / R:R must live inside a gated wrapper.
         for field in ("te-entry", "te-stop", "te-t1", "te-t2", "te-rr"):

@@ -1556,10 +1556,22 @@
                             const bits = [];
                             if (meta.reason) bits.push('Reason: ' + meta.reason);
                             if (meta.oos_edge !== undefined) {
-                                bits.push('OOS edge ' + meta.oos_edge + ' over ' +
-                                          (meta.oos_trades !== undefined ? meta.oos_trades : '?') + ' OOS trades' +
-                                          (meta.oos_win_rate !== undefined
-                                            ? ' (' + meta.oos_win_rate + '% win rate)' : ''));
+                                // Build the clause from whatever the payload
+                                // actually carries. Legacy published payloads
+                                // have oos_edge but no trade counts, and a bare
+                                // '?' placeholder read as a broken value rather
+                                // than an absent one. State the edge on its own
+                                // and say the counts were not recorded.
+                                let oosBit = 'OOS edge ' + meta.oos_edge;
+                                if (meta.oos_trades !== undefined) {
+                                    oosBit += ' over ' + meta.oos_trades + ' OOS trades';
+                                    if (meta.oos_win_rate !== undefined) {
+                                        oosBit += ' (' + meta.oos_win_rate + '% win rate)';
+                                    }
+                                } else {
+                                    oosBit += ' (trade counts not recorded in this payload)';
+                                }
+                                bits.push(oosBit);
                             }
                             oosReasonEl.innerHTML = 'Forecast shown from historical analogues. ' +
                                 bits.join(' · ') + '. No validated trade setup.';
