@@ -518,6 +518,11 @@
                         </h3>
                         <div id="te-bias" class="text-xl font-black text-green-400 uppercase tracking-widest bg-gray-800 px-4 py-1 rounded">LONG BIAS</div>
                     </div>
+
+                    <div id="te-trade-status" class="hidden mb-6 rounded-lg px-4 py-3 border border-red-700 bg-red-900/40">
+                        <div class="text-sm font-black text-red-300 uppercase tracking-widest">TRADE STATUS: NO VALIDATED SIGNAL</div>
+                        <div id="te-oos-reason" class="text-xs text-red-200 mt-1"></div>
+                    </div>
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-gray-300">
                         <div class="space-y-4">
@@ -525,6 +530,7 @@
                                 <span class="text-gray-400 text-sm uppercase">Current Price</span>
                                 <span class="text-2xl font-bold text-white" id="te-price">--</span>
                             </div>
+                            <div id="te-actionable" class="space-y-4">
                             <div class="flex justify-between items-end border-b border-gray-800 pb-2">
                                 <span class="text-gray-400 text-sm uppercase">Entry Zone</span>
                                 <span class="text-lg font-bold text-yellow-400" id="te-entry">--</span>
@@ -547,15 +553,16 @@
                                     <span class="text-gray-400 text-sm uppercase">Target 1</span>
                                     <span class="text-lg font-bold text-green-400" id="te-t1">--</span>
                                 </div>
-                                <div class="flex justify-between items-end border-b border-gray-800 pb-2 mt-2">
-                                    <span class="text-gray-400 text-sm uppercase">Target 2</span>
-                                    <span class="text-lg font-bold text-green-500" id="te-t2">--</span>
-                                </div>
+                            <div class="flex justify-between items-end border-b border-gray-800 pb-2 mt-2">
+                                <span class="text-gray-400 text-sm uppercase">Target 2</span>
+                                <span class="text-lg font-bold text-green-500" id="te-t2">--</span>
                             </div>
+                            </div><!-- /te-actionable -->
+                            </div><!-- /left column -->
                         </div>
                         
                         <div class="space-y-4">
-                            <div class="flex justify-between items-end border-b border-gray-800 pb-2">
+                            <div id="te-actionable-rr" class="flex justify-between items-end border-b border-gray-800 pb-2">
                                 <span class="text-gray-400 text-sm uppercase">Expected R:R</span>
                                 <span class="text-lg font-bold text-cyan-400" id="te-rr">--</span>
                             </div>
@@ -1287,39 +1294,78 @@
             return {score: 0, isReversal: false};
         }
 
+        const FEATURE_TO_CB_ID = {
+            'z_rsi': 'chk-rsi',
+            'z_stochrsi': 'chk-stochrsi',
+            'z_ema_diff': 'chk-ema59',
+            'z_price_ema': 'chk-ema20',
+            'z_vol': 'chk-deltaoi',
+            'z_vix': 'chk-vix',
+            'z_bn_rel': 'chk-divergence',
+            'chk-rsi': 'chk-rsi',
+            'chk-stochrsi': 'chk-stochrsi',
+            'chk-ema59': 'chk-ema59',
+            'chk-ema20': 'chk-ema20',
+            'chk-vix': 'chk-vix',
+            'chk-divergence': 'chk-divergence',
+            'chk-deltaoi': 'chk-deltaoi'
+        };
+
+        // Forecast availability and trade qualification are separate questions.
+        //   forecast  = today's analogue match has enough data (calculateTopK)
+        //   qualified = that forecast survived the WFO out-of-sample gate
+        // Only the second one gates the Trade Engine, and only on the daily
+        // (BTST) panel -- intraday keeps its existing ungated behaviour.
+        function isTradeQualified() {
+            if (currentTimeframe !== 'daily') return true;
+            const meta = (dashboardData && dashboardData._meta) ? dashboardData._meta : null;
+            // Only an explicit NO SIGNAL gates the Trade Engine. A payload with
+            // no _meta at all (e.g. the per-symbol sibling files) carries no
+            // WFO verdict, so it keeps its previous ungated behaviour rather
+            // than silently losing the trade card.
+            if (!meta || meta.status === undefined || meta.status === null) return true;
+            return meta.status === "SIGNAL";
+        }
+
+        // Which indicators feed the forecast. Prefers the WFO-selected
+        // candidate combination; falls back only when WFO produced no
+        // qualifying candidate (see wfo_candidate_features in the exporter).
+        function forecastFeatureIds() {
+            const meta = (dashboardData && dashboardData._meta) ? dashboardData._meta : null;
+            const candidate = (meta && meta.wfo_candidate_features) || [];
+            const ids = candidate.map(f => FEATURE_TO_CB_ID[f] || f);
+            if (ids.length > 0) return { ids: ids, usedFallback: false };
+            return { ids: ['chk-rsi', 'chk-ema59', 'chk-stochrsi'], usedFallback: true };
+        }
+
         function runAutoSelect() {
             if (dashboardData && dashboardData._meta) {
                 const meta = dashboardData._meta;
+                const featureToCbId = FEATURE_TO_CB_ID;
                 if (meta.status === "NO SIGNAL") {
-                    document.getElementById('badge-status').innerHTML = 'NO RELIABLE OOS SIGNAL DETECTED';
-                    document.getElementById('badge-status').className = 'px-3 py-1 bg-red-200 text-red-900 text-xs font-bold rounded-full tracking-wider shadow-sm';
-                    
-                    // Uncheck all
+                    const badgeEl = document.getElementById('badge-status');
+                    if (badgeEl) {
+                        badgeEl.innerHTML = 'NO RELIABLE OOS SIGNAL DETECTED';
+                        badgeEl.className = 'px-3 py-1 bg-red-200 text-red-900 text-xs font-bold rounded-full tracking-wider shadow-sm';
+                    }
+
+                    // Keep a forecast feature set checked. The OOS gate decides
+                    // whether a forecast is tradeable, not whether one exists.
+                    const fc = forecastFeatureIds();
                     document.querySelectorAll('.indicator-checkbox').forEach(cb => {
-                        cb.checked = false;
-                        cb.closest('label').classList.remove('ring-2', 'ring-blue-500', 'bg-blue-50');
+                        if (fc.ids.includes(cb.id)) {
+                            cb.checked = true;
+                            cb.closest('label').classList.add('ring-2', 'ring-blue-500', 'bg-blue-50');
+                        } else {
+                            cb.checked = false;
+                            cb.closest('label').classList.remove('ring-2', 'ring-blue-500', 'bg-blue-50');
+                        }
                     });
                     renderPrediction();
                     return;
                 }
                 
                 const optimalFeatures = meta.wfo_optimal_features || [];
-                const featureToCbId = {
-                    'z_rsi': 'chk-rsi',
-                    'z_stochrsi': 'chk-stochrsi',
-                    'z_ema_diff': 'chk-ema59',
-                    'z_price_ema': 'chk-ema20',
-                    'z_vol': 'chk-deltaoi',
-                    'z_vix': 'chk-vix',
-                    'z_bn_rel': 'chk-divergence',
-                    'chk-rsi': 'chk-rsi',
-                    'chk-stochrsi': 'chk-stochrsi',
-                    'chk-ema59': 'chk-ema59',
-                    'chk-ema20': 'chk-ema20',
-                    'chk-vix': 'chk-vix',
-                    'chk-divergence': 'chk-divergence',
-                    'chk-deltaoi': 'chk-deltaoi'
-                };
                 let activeCbIds = optimalFeatures.map(f => featureToCbId[f] || f);
                 if (activeCbIds.length === 0) {
                     activeCbIds = ['chk-rsi', 'chk-ema59', 'chk-stochrsi'];
@@ -1434,14 +1480,20 @@
 
             setTimeout(() => {
                 if (!topK) {
+                    // Case C: no forecast. Explicitly retire both boxes so a
+                    // previously rendered actionable card cannot linger.
                     probEl.innerHTML = '<span class="text-gray-400">--%</span>';
                     moveEl.innerHTML = '<span class="text-gray-400">--</span>';
                     moodEl.innerHTML = '<span class="text-gray-500">None</span>';
-                    strategyEl.innerHTML = '<strong>No indicators selected or not enough historical data for vector matching. Check at least one indicator.</strong>';
+                    strategyEl.innerHTML = '<strong>No forecast available for this date. Not enough historical data for vector matching.</strong>';
                     if(analogueEl) analogueEl.innerHTML = "No historical match generated.";
                     
                     const confBox = document.getElementById('confluence-box');
                     if (confBox) confBox.classList.add('hidden');
+                    const teBox = document.getElementById('trade-engine-box');
+                    if (teBox) teBox.classList.add('hidden');
+                    const oldBox = document.getElementById('old-strategy-box');
+                    if (oldBox) oldBox.classList.remove('hidden');
                     return;
                 }
                 
@@ -1474,10 +1526,44 @@
                 // Institutional Summary
                 
                 // --- TRADE DECISION ENGINE LOGIC ---
+                // A forecast exists (topK). Whether it is presented as an
+                // actionable trade is a separate, WFO-gated decision.
                 if (document.getElementById('trade-engine-box') && topK && topK.topK) {
+                    const qualified = isTradeQualified();
+                    const teStatusEl = document.getElementById('te-trade-status');
+                    const oosReasonEl = document.getElementById('te-oos-reason');
+                    const actionableEl = document.getElementById('te-actionable');
+                    const actionableRrEl = document.getElementById('te-actionable-rr');
+
                     document.getElementById('trade-engine-box').classList.remove('hidden');
                     if (document.getElementById('old-strategy-box')) {
                         document.getElementById('old-strategy-box').classList.add('hidden');
+                    }
+
+                    if (qualified) {
+                        if (teStatusEl) teStatusEl.classList.add('hidden');
+                        if (actionableEl) actionableEl.classList.remove('hidden');
+                        if (actionableRrEl) actionableRrEl.classList.remove('hidden');
+                    } else {
+                        // Case B: forecast shown, trade not offered. Hide the
+                        // actionable levels entirely rather than dimming them,
+                        // and state the OOS reason.
+                        if (actionableEl) actionableEl.classList.add('hidden');
+                        if (actionableRrEl) actionableRrEl.classList.add('hidden');
+                        if (teStatusEl) teStatusEl.classList.remove('hidden');
+                        if (oosReasonEl) {
+                            const meta = (dashboardData && dashboardData._meta) ? dashboardData._meta : {};
+                            const bits = [];
+                            if (meta.reason) bits.push('Reason: ' + meta.reason);
+                            if (meta.oos_edge !== undefined) {
+                                bits.push('OOS edge ' + meta.oos_edge + ' over ' +
+                                          (meta.oos_trades !== undefined ? meta.oos_trades : '?') + ' OOS trades' +
+                                          (meta.oos_win_rate !== undefined
+                                            ? ' (' + meta.oos_win_rate + '% win rate)' : ''));
+                            }
+                            oosReasonEl.innerHTML = 'Forecast shown from historical analogues. ' +
+                                bits.join(' · ') + '. No validated trade setup.';
+                        }
                     }
                     
                     const currSigs = dashboardData[dateStr].signals;

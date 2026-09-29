@@ -1,5 +1,8 @@
 import json
 import os
+import sys
+from pathlib import Path
+
 import pandas as pd
 import pandas_ta as ta
 import numpy as np
@@ -8,6 +11,13 @@ import yfinance
 import requests
 import re
 import yfinance as yf
+
+# Run as `python scripts/export_dashboard.py` from anywhere: make the project
+# root importable so `core` resolves.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+import core.data as core_data
+import core.settings as core_settings
 
 try:
     from nselib import capital_market
@@ -31,6 +41,12 @@ def build_wfo_meta(best_final_edge, best_final_stats, oos_edge, oos_win_rate,
         edge/trade figures as SIGNAL plus a human-readable ``reason`` naming
         the gate that failed, and an empty feature list. The UI relies on this
         to explain itself instead of rendering silent blanks.
+      * ``wfo_candidate_features`` carries the combination the optimizer
+        actually selected, so the UI can compute a forecast from it even when
+        the OOS gate rejected it. It is NOT a validated feature set: it must
+        never be promoted into ``wfo_optimal_features`` and must never be used
+        to qualify a trade. An empty list means no combination cleared the
+        5-trade floor, which is distinct from the field being absent.
     """
     common = {
         "val_edge": round(float(best_final_edge), 4) if best_final_edge != -999 else 0,
@@ -47,6 +63,7 @@ def build_wfo_meta(best_final_edge, best_final_stats, oos_edge, oos_win_rate,
     if best_final_edge > 0 and oos_edge > 0 and ui_boxes:
         meta = dict(common)
         meta["wfo_optimal_features"] = list(ui_boxes)
+        meta["wfo_candidate_features"] = list(ui_boxes)
         meta["status"] = "SIGNAL"
         meta["reason"] = "OOS edge > 0"
         return meta
@@ -60,27 +77,27 @@ def build_wfo_meta(best_final_edge, best_final_stats, oos_edge, oos_win_rate,
 
     meta = dict(common)
     meta["wfo_optimal_features"] = []
+    meta["wfo_candidate_features"] = list(ui_boxes) if ui_boxes else []
     meta["status"] = "NO SIGNAL"
     meta["reason"] = reason
     return meta
 
 
-def process_symbol(symbol_name, db_filename):
+def process_symbol(symbol_name, cache_key, yf_symbol):
     data_file = f"dashboard_data.json" if symbol_name == "nifty" else f"dashboard_data_{symbol_name}.json"
     data = {}
     
-    # Load from our new unified Yahoo+Fyers Database
-    csv_path = f"data/historical/{db_filename}"
+    # Load from our new unified Yahoo+Fyers Database. Resolved via
+    # core.data.ohlcv_path() so this can never drift from the cache writer.
+    csv_path = str(core_data.ohlcv_path(cache_key, core_settings.load_settings()))
     if os.path.exists(csv_path):
         df = pd.read_csv(csv_path, index_col=0, parse_dates=True)
         # Standardize column names
         df = df.rename(columns={"open": "Open", "high": "High", "low": "Low", "close": "Close", "volume": "Volume"})
-        print(f"Loaded master DB for {symbol_name}: {len(df)} rows.")
+        print(f"Loaded master DB for {symbol_name}: {len(df)} rows from {csv_path}")
     else:
         print(f"Master DB {csv_path} missing. Fallback to yfinance...")
-        ticker_map = {"nifty": "^NSEI", "banknifty": "^NSEBANK", "reliance": "RELIANCE.NS"}
-        ticker_sym = ticker_map.get(symbol_name, "^NSEI")
-        ticker = yf.Ticker(ticker_sym)
+        ticker = yf.Ticker(yf_symbol)
         df = ticker.history(period="10y")
     
     # Fetch Institutional Data (VIX & USDINR)
@@ -117,8 +134,8 @@ def process_symbol(symbol_name, db_filename):
             if not ns.empty:
                 ns['Date'] = pd.to_datetime(ns['HistoricalDate'])
                 ns = ns.set_index('Date')
+                ns.index = ns.index.tz_localize(None)
                 ns = ns.sort_index()
-                ns.index = ns.index.tz_localize('Asia/Kolkata')
                 
                 ns['Open'] = pd.to_numeric(ns['OPEN'])
                 ns['High'] = pd.to_numeric(ns['HIGH'])
@@ -126,7 +143,11 @@ def process_symbol(symbol_name, db_filename):
                 ns['Close'] = pd.to_numeric(ns['CLOSE'])
                 ns = ns[['Open', 'High', 'Low', 'Close']]
                 
-                # Find which dates from ns are missing in df
+                # Find which dates from ns are missing in df. Both indexes are
+                # tz-naive here: HistoricalDate is already a plain IST date, and
+                # localizing it to Asia/Kolkata made it tz-aware, so the isin
+                # and the concat below raised "Cannot compare tz-naive and
+                # tz-aware timestamps" and the whole backfill silently died.
                 missing = ns[~ns.index.isin(df.index)]
                 if not missing.empty:
                     df = pd.concat([df, missing]).sort_index()
@@ -631,16 +652,25 @@ def process_symbol(symbol_name, db_filename):
     print(f"[{symbol_name}] Successfully updated {data_file}")
 
 def main():
-    # Process multiple instruments
+    # Process multiple instruments.
+    #
+    # The second element is the *cache key* used by core.data.save_series(),
+    # not a hand-written filename. It used to be hardcoded as "banknifty.csv"
+    # while the cache writes "bank_nifty.csv", so Bank Nifty never found its
+    # master DB and silently fell back to a 10y yfinance window. Resolving the
+    # path through core.data.ohlcv_path() keeps writer and reader in lockstep.
+    #
+    # "reliance" is not a configured symbol (see config/settings.json
+    # -> symbols), so it has no cache series and legitimately uses the fallback.
     instruments = [
-        ("nifty", "nifty.csv"),
-        ("banknifty", "banknifty.csv"),
-        ("reliance", "reliance.csv")
+        ("nifty", "nifty", "^NSEI"),
+        ("banknifty", "bank_nifty", "^NSEBANK"),
+        ("reliance", "reliance", "RELIANCE.NS")
     ]
-    
-    for sym, filename in instruments:
+
+    for sym, cache_key, yf_symbol in instruments:
         print(f"\n--- Processing {sym.upper()} ---")
-        process_symbol(sym, filename)
+        process_symbol(sym, cache_key, yf_symbol)
 
 if __name__ == "__main__":
     main()

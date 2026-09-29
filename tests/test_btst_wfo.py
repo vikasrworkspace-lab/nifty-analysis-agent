@@ -106,6 +106,53 @@ class TestNoSignal:
             assert _meta(oos_edge=oos)["reason"]
 
 
+class TestCandidateFeatures:
+    """The candidate set drives the forecast but never the trade gate.
+
+    Forecast availability must be independent of OOS qualification: the UI
+    needs to know which combination the optimizer picked even when that
+    combination failed to validate, otherwise a legitimate BTST forecast gets
+    suppressed by the very gate meant only to qualify trades.
+    """
+
+    def test_no_signal_publishes_candidate(self):
+        # val_edge is positive and a combination cleared the floor, so the
+        # optimizer did select one -- only the OOS edge rejected it.
+        m = _meta(oos_edge=-0.0078, oos_win_rate=0.468)
+        assert m["wfo_candidate_features"] == ["chk-rsi", "chk-ema20"]
+
+    def test_candidate_is_never_promoted_on_no_signal(self):
+        m = _meta(oos_edge=-0.0078)
+        assert m["status"] == "NO SIGNAL"
+        assert m["wfo_optimal_features"] == []
+        assert m["wfo_candidate_features"] != []
+
+    def test_candidate_present_on_signal(self):
+        m = _meta()
+        assert m["wfo_candidate_features"] == m["wfo_optimal_features"]
+
+    def test_empty_candidate_when_floor_not_cleared(self):
+        m = _meta(best_final_edge=-999, best_final_stats=None, oos_edge=0.0,
+                  oos_trades=0, oos_win_rate=0.0, ui_boxes=None)
+        assert m["wfo_candidate_features"] == []
+        assert m["wfo_optimal_features"] == []
+
+    def test_empty_candidate_is_reported_as_floor_failure(self):
+        # Distinguishes "no qualifying candidate" from "field missing", so the
+        # UI can label a fallback feature set honestly.
+        m = _meta(best_final_edge=-999, best_final_stats=None, oos_edge=0.0,
+                  oos_trades=0, oos_win_rate=0.0, ui_boxes=None)
+        assert "5-trade floor" in m["reason"]
+
+    def test_candidate_present_but_never_qualifies_trade(self):
+        # Positive validation edge and a real candidate, yet still NO SIGNAL:
+        # the candidate alone must not promote the status.
+        m = _meta(oos_edge=0.0, oos_win_rate=0.5)
+        assert m["wfo_candidate_features"] != []
+        assert m["status"] == "NO SIGNAL"
+        assert m["wfo_optimal_features"] == []
+
+
 class TestConsistency:
     def test_win_rate_zero_when_no_trades(self):
         m = _meta(oos_trades=0, oos_win_rate=0.0, oos_edge=0.0)
@@ -120,7 +167,8 @@ class TestConsistency:
     def test_both_branches_expose_same_statistical_fields(self):
         keys = {"val_edge", "val_win_rate", "val_trades", "oos_edge",
                 "oos_win_rate", "oos_trades", "stability", "val_window",
-                "oos_window", "wfo_optimal_features", "status", "reason"}
+                "oos_window", "wfo_optimal_features", "wfo_candidate_features",
+                "status", "reason"}
         assert set(_meta()) == keys
         assert set(_meta(oos_edge=-0.01)) == keys
 
