@@ -183222,24 +183222,34 @@
       "z_ema_diff": -1.005,
       "z_price_ema": -1.525,
       "z_atr": -0.599,
-      "z_vol": -3.629,
+      "z_vol": -0.428,
       "z_vix": 0.0,
       "z_bn_rel": 0.0,
       "analogue_match": "Similar to 21 Sep 2007 (Next day went UP)"
     }
   },
   "_meta": {
-    "wfo_optimal_features": [],
-    "val_edge": 0.0081,
-    "oos_edge": 0,
+    "val_edge": 0.0317,
+    "val_win_rate": 50.8,
+    "val_trades": 65,
+    "oos_edge": -0.0298,
+    "oos_win_rate": 32.3,
+    "oos_trades": 65,
     "stability": {
-      "chk-rsi": 0.0,
-      "chk-stochrsi": 0.0,
-      "chk-ema59": 0.0,
-      "chk-ema20": 6.7,
-      "z_atr": 6.7,
-      "chk-deltaoi": 0.0
+      "chk-rsi": 78.6,
+      "chk-stochrsi": 87.3,
+      "chk-ema59": 17.5,
+      "chk-ema20": 88.9,
+      "chk-deltaoi": 48.4
     },
-    "status": "NO SIGNAL"
+    "val_window": 252,
+    "oos_window": 126,
+    "wfo_optimal_features": [],
+    "wfo_candidate_features": [
+      "chk-rsi",
+      "chk-ema59"
+    ],
+    "status": "NO SIGNAL",
+    "reason": "OOS edge <= 0"
   }
 }
