@@ -713,10 +713,8 @@
                 // Keep timeframe visible but maybe restrict 'daily'
                 tfSelect.classList.remove('hidden');
                 subtabs.classList.add('hidden');
-                if (tfSelect.value === 'daily') {
-                    tfSelect.value = '5'; // Default to 5m if daily was selected
-                    currentTimeframe = '5';
-                }
+                tfSelect.value = '5';
+                currentTimeframe = '5';
                 checkMarketStatus();
             } else {
                 tfSelect.classList.add('hidden'); // Hide for BTST
