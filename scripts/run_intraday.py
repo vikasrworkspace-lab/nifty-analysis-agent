@@ -57,7 +57,9 @@ def main(argv=None) -> None:
 
     z = patterns.zscore_point_in_time(frame, features, lookback)
     target_pos = len(frame) - 1
-    sim, dist = patterns.find_analogues(frame, z, features, weights, target_pos, k, lookback)
+    sim, dist = patterns.find_analogues(
+        frame, z, features, weights, target_pos, k, lookback, session_col="session"
+    )
     if not sim:
         raise SystemExit("No analogues found.")
 

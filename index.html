@@ -307,6 +307,11 @@
                 </h2>
                 <input type="date" id="date-picker" class="w-full bg-gray-50 border border-gray-200 text-gray-900 font-semibold py-3 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 transition-shadow cursor-pointer" onchange="loadDateData()">
                 <div id="date-error" class="text-sm font-semibold text-red-500 mt-1 mb-5 hidden">Market Closed / No Data for this date</div>
+                <!-- Feed staleness. The intraday exporter refuses to publish a stale
+                     feed, so this banner is driven purely by how old the newest bar in
+                     the payload we actually loaded is. Outside market hours yesterday's
+                     data is correct, so nothing is shown then. -->
+                <div id="stale-banner" class="hidden mt-1 mb-5 px-3 py-2 rounded border text-sm font-semibold bg-amber-50 border-amber-300 text-amber-800"></div>
                 <div id="date-return" class="text-sm font-medium mt-1 mb-4 hidden px-3 py-2 rounded border"></div>
 
                 <h2 class="text-lg font-bold mb-2 flex items-center gap-2 pt-4 border-t">
@@ -323,6 +328,20 @@
                         </div>
                         <input type="checkbox" id="chk-autoselect" class="w-4 h-4 text-brand-600 rounded" checked onchange="runAutoSelect()">
                     </label>
+                    <!--
+                      Per-date out-of-sample result.
+
+                      This is deliberately separate from the Auto-Select badge
+                      above. The badge is a symbol-level, whole-window verdict
+                      (one number for the entire OOS period) and must never be
+                      read as the call made on a particular date. This panel
+                      answers "what did the walk-forward actually predict on the
+                      selected day, and was it right?" by looking up that day's
+                      stored OOS record only.
+                    -->
+                    <div id="oos-per-date" class="mt-3 pt-3 border-t border-blue-200">
+                        <!-- populated by renderPerDateOOS() -->
+                    </div>
                 </div>
 
                 <div class="space-y-3" id="indicator-list">
@@ -559,6 +578,15 @@
                             </div>
                             </div><!-- /te-actionable -->
                             </div><!-- /left column -->
+
+                            <!-- PROVENANCE: every level states where it came from, so a
+                                 reader can tell a modelled percentile from a fixed rule. -->
+                            <div id="te-provenance" class="hidden mt-4 pt-3 border-t border-gray-800">
+                                <div class="text-gray-500 text-xs font-bold uppercase tracking-widest mb-2">How each level was derived</div>
+                                <table id="te-provenance-table" class="w-full text-xs text-gray-400">
+                                    <tbody></tbody>
+                                </table>
+                            </div>
                         </div>
                         
                         <div class="space-y-4">
@@ -566,6 +594,15 @@
                                 <span class="text-gray-400 text-sm uppercase">Expected R:R</span>
                                 <span class="text-lg font-bold text-cyan-400" id="te-rr">--</span>
                             </div>
+
+                            <!-- The ratio is always shown, favourable or not. It is never
+                                 suppressed and never gated on a threshold, because no
+                                 minimum R:R is configured anywhere in the project. -->
+                            <div id="te-rr-warning" class="hidden rounded px-3 py-2 text-xs font-bold uppercase tracking-wider border border-yellow-700 bg-yellow-900/40 text-yellow-300">
+                                &#9888; UNFAVOURABLE RISK / REWARD
+                                <div id="te-rr-warning-detail" class="font-normal normal-case tracking-normal text-yellow-200 mt-1"></div>
+                            </div>
+                            <div id="te-rr-basis" class="text-xs text-gray-500"></div>
                             
                             <div class="pt-4 pb-2">
                                 <div class="flex justify-between text-xs mb-1">
@@ -597,6 +634,39 @@
                         <div class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-1">Action</div>
                         <div id="te-action" class="text-2xl font-black text-yellow-400">WAIT FOR BREAKOUT</div>
                     </div>
+
+                    <!-- OVERNIGHT GAP MODEL (BTST only).
+                         The prior UI said "Gap up >0.5%: Don't chase" while the
+                         very next line demanded a breakout entry, so an overnight
+                         gap in the trade's own direction silently voided the
+                         setup. This block makes the gap scenarios explicit
+                         instead of hiding the contradiction in one string. -->
+                    <div id="te-gap" class="hidden mt-6 pt-4 border-t border-gray-700">
+                        <div class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-2">
+                            Overnight Gap Scenarios
+                            <span class="font-normal normal-case tracking-normal text-gray-500">(next session)</span>
+                        </div>
+                        <div id="te-gap-body" class="grid grid-cols-1 sm:grid-cols-3 gap-3"></div>
+                        <div id="te-gap-note" class="text-xs text-gray-500 mt-2"></div>
+                    </div>
+                </div>
+
+                <!-- LAYER B: OPTION TRADE CONSTRUCTION.
+                     R:R here is computed in OPTION PRICE space by the exporter's
+                     Black-Scholes model. It is never the underlying's point R:R,
+                     and never shown at all when the chain is missing or stale. -->
+                <div class="bg-gray-900 border border-gray-700 rounded-xl p-6 mb-6" id="option-layer">
+                    <div class="flex justify-between items-center mb-4 border-b border-gray-700 pb-3">
+                        <h3 class="font-bold text-white flex items-center gap-2 tracking-wide">
+                            <i class="fa-solid fa-layer-group text-purple-400"></i> OPTION TRADE CONSTRUCTION
+                        </h3>
+                        <div id="opt-status" class="text-xs font-bold uppercase tracking-widest px-3 py-1 rounded bg-gray-800 text-gray-400">NO CHAIN</div>
+                    </div>
+                    <div id="opt-body" class="text-gray-400 text-sm">
+                        No option chain published for this session.
+                    </div>
+                    <div id="opt-candidates" class="mt-4"></div>
+                    <div id="opt-assumptions" class="text-xs text-gray-500 mt-3"></div>
                 </div>
 
                 <div class="bg-blue-50 border border-blue-100 rounded-xl p-6 mb-6 flex-grow" id="old-strategy-box">
@@ -692,6 +762,17 @@
         </div>
     </main>
 
+    <!--
+      Deployment configuration for the published dashboard UI.
+
+      Kept in its own file so the data location can change without editing this
+      page. `scripts/sync_public.py` copies this file next to the Firebase copy
+      of the page; GitHub Pages serves it from the repository root. Point
+      `DASHBOARD_DATA_BASE_URL` at a different origin to retarget the page
+      without touching any code below.
+    -->
+    <script src="data-config.js"></script>
+
     <script>
         let dashboardData = {};
         let currentMode = 'intraday'; // 'intraday' or 'historical'
@@ -699,6 +780,23 @@
         let currentInstrument = 'nifty';
         let currentTimeframe = '5'; // Intraday forces '5'
         let currentResolvedDate = null;
+
+        // Where the published dashboard JSON lives.
+        //
+        // The data is fetched straight from the GCS bucket instead of from copies
+        // bundled alongside this page, so it reflects the latest export cycle
+        // rather than the last Hosting deploy. Every object under that prefix is
+        // published with `Cache-Control: no-store`, and that header -- not a
+        // query-string cache-buster -- is what keeps a stale market-data response
+        // out of the browser.
+        //
+        // The bucket's CORS policy allows only the real dashboard origins (the
+        // deployed Firebase site and the GitHub Pages site), so this cross-origin
+        // request is refused by the browser anywhere else.
+        //
+        // Empty means "resolve relative to this page", which is what a bare
+        // file:// or static-server open of the repository should do.
+        const DATA_BASE_URL = (window.DASHBOARD_DATA_BASE_URL || '').replace(/\/+$/, '');
 
         function setMode(mode) {
             currentMode = mode;
@@ -778,6 +876,61 @@
             fetchLiveJSON();
         }
 
+        // --- feed staleness ---------------------------------------------------
+        // MAX_STALE_MIN matches MAX_BAR_AGE_MIN in scripts/auto_intraday_loop.py,
+        // i.e. the same tolerance the exporter's own freshness gate enforces, so
+        // the banner and the gate cannot disagree about what "stale" means.
+        const MAX_STALE_MIN = 12;
+
+        function istParts() {
+            const out = {};
+            const fmt = new Intl.DateTimeFormat('en-GB', {
+                timeZone: 'Asia/Kolkata',
+                hourCycle: 'h23',
+                weekday: 'short',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            fmt.formatToParts(new Date()).forEach(p => { out[p.type] = p.value; });
+            return out;
+        }
+
+        function inMarketHoursIst() {
+            const p = istParts();
+            if (p.weekday === 'Sat' || p.weekday === 'Sun') return false;
+            const mins = parseInt(p.hour, 10) * 60 + parseInt(p.minute, 10);
+            return mins >= 9 * 60 + 15 && mins < 15 * 60 + 35;
+        }
+
+        function updateStaleBanner() {
+            const el = document.getElementById('stale-banner');
+            if (!el) return;
+            const fr = dashboardData && dashboardData._freshness;
+            // Daily payloads carry no _freshness, and neither do intraday payloads
+            // published before this field existed. Absence is not staleness.
+            if (currentTimeframe === 'daily' || !fr || !fr.last_bar_ts) {
+                el.classList.add('hidden');
+                return;
+            }
+            const last = new Date(fr.last_bar_ts);
+            if (isNaN(last.getTime())) { el.classList.add('hidden'); return; }
+            const ageMin = (Date.now() - last.getTime()) / 60000;
+            // Outside market hours the last session's data is correct, not stale.
+            if (!inMarketHoursIst() || ageMin <= MAX_STALE_MIN) {
+                el.classList.add('hidden');
+                return;
+            }
+            const when = last.toLocaleString('en-GB', {
+                timeZone: 'Asia/Kolkata',
+                day: '2-digit', month: 'short',
+                hour: '2-digit', minute: '2-digit'
+            });
+            el.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> '
+                + 'Intraday feed stale &mdash; no new bars since ' + when
+                + ' IST. Run <code>morning_login.bat</code> before the open.';
+            el.classList.remove('hidden');
+        }
+
         async function fetchLiveJSON(isSilentRefresh = false) {
             try {
                 let jsonFile = 'dashboard_data.json'; // Default daily fallback
@@ -790,17 +943,24 @@
                     jsonFile = `intraday_${currentTimeframe}_${currentInstrument}.json`;
                 }
                 
-                const res = await fetch(jsonFile + '?t=' + new Date().getTime());
+                const res = await fetch(`${DATA_BASE_URL}/${jsonFile}`);
                 
                 if (!res.ok) {
                     throw new Error("HTTP " + res.status);
                 }
                 
                 dashboardData = await res.json();
+                updateStaleBanner();
                 
                 const select = document.getElementById('date-picker');
-                // Ensure _meta key from dashboard_data is excluded from date selection logic
-                const dates = Object.keys(dashboardData).filter(k => k !== '_meta').sort().reverse();
+                // Exclude the reserved underscore-prefixed blocks from date selection
+                // logic. These are sibling metadata payloads carried by the published
+                // dashboard JSON -- `_meta` plus the options-chain block in `_options`
+                // -- and neither is a dated series entry. They must be filtered by
+                // shape rather than by name, because an unrecognised block of that
+                // shape would otherwise sort to the top of the list (underscore sorts
+                // above digits) and become the default selection.
+                const dates = Object.keys(dashboardData).filter(k => !k.startsWith('_')).sort().reverse();
                 
                 if (dates.length > 0) {
                     // Extract unique dates for the date picker (YYYY-MM-DD)
@@ -1087,7 +1247,6 @@
             if(document.getElementById('desc-r1')) document.getElementById('desc-r1').remove();
             if(document.getElementById('desc-s1')) document.getElementById('desc-s1').remove();
             if(document.getElementById('desc-pain')) document.getElementById('desc-pain').remove();
-            if(document.getElementById('desc-pain')) document.getElementById('desc-pain').remove();
 
             if (data.signals.options_resistance && data.signals.options_support) {
                 document.getElementById('res-r1').textContent = data.signals.options_resistance;
@@ -1104,18 +1263,6 @@
                 descS.className = 'block text-xs text-gray-500 mt-2 border-t pt-1';
                 descS.textContent = "Max put writers (Buyers)";
                 s1Element.appendChild(descS);
-                
-                if (data.signals.options_max_pain) {
-                    document.getElementById('res-pain').textContent = data.signals.options_max_pain;
-                    let descP = document.createElement('span');
-                    descP.id = 'desc-pain';
-                    descP.className = 'block text-xs text-gray-500 mt-2 border-t pt-1';
-                    descP.textContent = "Expiry Magnet";
-                    if(document.getElementById('desc-pain')) document.getElementById('desc-pain').remove();
-                    document.getElementById('res-pain').parentElement.appendChild(descP);
-                } else {
-                    document.getElementById('res-pain').textContent = "N/A";
-                }
             } else if (data.signals.high && data.signals.low) {
                 const high = data.signals.high;
                 const low = data.signals.low;
@@ -1140,6 +1287,22 @@
             } else {
                 document.getElementById('res-r1').textContent = 'Data Syncing...';
                 document.getElementById('res-s1').textContent = 'Data Syncing...';
+            }
+
+            // Max Pain keys off options_max_pain alone, never off
+            // options_resistance/options_support. The intraday payload carries a
+            // max pain but no resistance/support levels, so gating it on the
+            // same condition as the pivot branch above left this card stuck on
+            // its "Loading..." initial text for the whole session.
+            if (data.signals.options_max_pain) {
+                document.getElementById('res-pain').textContent = data.signals.options_max_pain;
+                let descP = document.createElement('span');
+                descP.id = 'desc-pain';
+                descP.className = 'block text-xs text-gray-500 mt-2 border-t pt-1';
+                descP.textContent = "Expiry Magnet";
+                document.getElementById('res-pain').parentElement.appendChild(descP);
+            } else {
+                document.getElementById('res-pain').textContent = "N/A";
             }
             
             // Analogue
@@ -1194,6 +1357,12 @@
                 const histDate = allDates[i];
                 const histData = dashboardData[histDate];
                 if(!histData || !histData.signals) continue;
+                
+                // Intraday no-lookahead guard: a bar's forward_return_pct runs
+                // to its own session close, so a candidate from the target's
+                // session would carry the target bar's future. Only strictly
+                // earlier sessions are eligible analogues.
+                if (isIntraday && histDate.slice(0, 10) === dateStr.slice(0, 10)) continue;
                 
                 let sumSq = 0;
                 let valid = true;
@@ -1340,11 +1509,25 @@
             if (dashboardData && dashboardData._meta) {
                 const meta = dashboardData._meta;
                 const featureToCbId = FEATURE_TO_CB_ID;
+                if (meta.status === "INSUFFICIENT_DATA") {
+                    // The walk-forward could not test this instrument. Say so
+                    // explicitly instead of rendering an empty panel, and treat
+                    // it as unvalidated rather than as a pass.
+                    const badgeEl = document.getElementById('badge-status');
+                    if (badgeEl) {
+                        badgeEl.innerHTML = 'MODEL-LEVEL: UNVALIDATED — INSUFFICIENT DATA';
+                        badgeEl.className = 'px-3 py-1 bg-gray-200 text-gray-900 text-xs font-bold rounded-full tracking-wider shadow-sm';
+                        badgeEl.title = 'The walk-forward could not test this instrument. No verdict was reached at any level.';
+                    }
+                    renderPrediction();
+                    return;
+                }
                 if (meta.status === "NO SIGNAL") {
                     const badgeEl = document.getElementById('badge-status');
                     if (badgeEl) {
-                        badgeEl.innerHTML = 'NO RELIABLE OOS SIGNAL DETECTED';
+                        badgeEl.innerHTML = 'MODEL-LEVEL: NO RELIABLE OOS SIGNAL DETECTED';
                         badgeEl.className = 'px-3 py-1 bg-red-200 text-red-900 text-xs font-bold rounded-full tracking-wider shadow-sm';
+                        badgeEl.title = 'Symbol-level verdict for the whole out-of-sample window. It is NOT the call made on any particular date - see the per-date OOS result below.';
                     }
 
                     // Keep a forecast feature set checked. The OOS gate decides
@@ -1396,8 +1579,8 @@
                 `;
                 
                 document.getElementById('badge-status').outerHTML = `
-                    <div id="badge-status" class="relative group inline-block cursor-help px-3 py-1 bg-green-200 text-green-900 text-xs font-bold rounded-full tracking-wider shadow-sm">
-                        WALK-FORWARD OPTIMIZED (OOS Edge: ${oosEdge > 0 ? '+' : ''}${oosEdge})
+                    <div id="badge-status" class="relative group inline-block cursor-help px-3 py-1 bg-green-200 text-green-900 text-xs font-bold rounded-full tracking-wider shadow-sm" title="Symbol-level verdict for the whole out-of-sample window. It is NOT the call made on any particular date - see the per-date OOS result below.">
+                        MODEL-LEVEL: WALK-FORWARD OPTIMIZED (OOS Edge: ${oosEdge > 0 ? '+' : ''}${oosEdge})
                         ${tooltipHtml}
                     </div>
                 `;
@@ -1454,10 +1637,95 @@
             return avgMove;
         }
 
+        // Per-date out-of-sample result.
+        //
+        // The Auto-Select badge is a symbol-level verdict: one number for the
+        // whole OOS window. This is the date-level counterpart, and it is read
+        // strictly from the record the exporter stored for THIS date. It never
+        // reuses the global status, and it never infers a prediction for a date
+        // the walk-forward did not cover.
+        function renderPerDateOOS(dateStr) {
+            const el = document.getElementById('oos-per-date');
+            if (!el) return;
+
+            const row = (label, value, cls) =>
+                `<div class="flex justify-between py-0.5"><span>${label}</span>` +
+                `<span class="${cls || 'font-semibold'}">${value}</span></div>`;
+
+            const header = (title, sub) =>
+                `<div class="text-[11px] font-bold text-blue-900 uppercase tracking-wide">${title}</div>` +
+                `<div class="text-[10px] text-blue-700 mb-1">${sub}</div>`;
+
+            const meta = (dashboardData && dashboardData._meta) ? dashboardData._meta : null;
+
+            // No metadata at all (legacy payload, or a symbol the exporter has
+            // not yet covered). Say so; do not fall back to the global badge.
+            if (!meta || !Array.isArray(meta.oos_predictions)) {
+                el.innerHTML = header('Out-of-sample result', 'for ' + dateStr) +
+                    '<div class="text-[11px] text-gray-500 italic">' +
+                    'No per-date OOS prediction is available for this date.</div>';
+                return;
+            }
+
+            const rec = meta.oos_predictions.find(r => r.date === dateStr);
+            if (!rec) {
+                el.innerHTML = header('Out-of-sample result', 'for ' + dateStr) +
+                    '<div class="text-[11px] text-gray-500 italic">' +
+                    'No per-date OOS prediction is available for this date.</div>';
+                return;
+            }
+
+            let body = '';
+            const isFlat = rec.direction === 'FLAT';
+            const isNoModel = rec.direction === 'NO_MODEL';
+            if (isFlat || isNoModel) {
+                // Neither FLAT nor NO_MODEL is a trade, so there is no hit or
+                // miss to score. Rendering either as a loss would understate
+                // the model's record, and NO_MODEL has no feature set at all.
+                body += row('Model call', isNoModel ? 'No model' : 'No trade',
+                            'text-gray-600');
+                if (rec.prob_up !== null && rec.prob_up !== undefined) {
+                    body += row('P(up)', rec.prob_up.toFixed(0) + '%', 'text-gray-600');
+                }
+                if (rec.expected_return !== null && rec.expected_return !== undefined) {
+                    body += row('Expected return',
+                                (rec.expected_return > 0 ? '+' : '') + rec.expected_return.toFixed(2) + '%',
+                                'text-gray-600');
+                }
+                body += '<div class="text-[10px] text-gray-500 mt-1">' +
+                    (isNoModel
+                        ? 'No feature combination cleared the validation gate on this date.'
+                        : 'Probability stayed inside the 45-55 no-trade band.') + '</div>';
+            } else {
+                const isLong = rec.direction === 'LONG';
+                const dirCls = isLong ? 'text-green-700' : 'text-red-700';
+                const actual = rec.actual_return;
+                const verdictCls = rec.correct ? 'text-green-700' : 'text-red-700';
+                const verdict = rec.correct ? 'Correct' : 'Incorrect';
+                body += row('Model call', rec.direction, dirCls);
+                body += row('P(up)', rec.prob_up.toFixed(0) + '%');
+                body += row('Expected return', (rec.expected_return > 0 ? '+' : '') + rec.expected_return.toFixed(2) + '%');
+                body += row('Actual return', (actual > 0 ? '+' : '') + actual.toFixed(2) + '%', verdictCls);
+                body += row('Outcome', verdict, verdictCls);
+            }
+            if (rec.note) {
+                body += '<div class="text-[10px] text-gray-500 mt-1">' + rec.note + '</div>';
+            }
+            if (rec.features && rec.features.length) {
+                body += '<div class="text-[10px] text-gray-500 mt-1">Model used: ' +
+                    rec.features.join(', ') + '</div>';
+            }
+
+            el.innerHTML = header('Out-of-sample result', 'for ' + dateStr) + body;
+        }
+
         function renderPrediction() {
             if (!currentResolvedDate) return;
             
             const dateStr = currentResolvedDate;
+            // Render independently of the retrospective analogue panel: a date
+            // can have a stored OOS record even when no top-K match is found.
+            renderPerDateOOS(dateStr);
             const vol = calculateMarketVolatility(dateStr);
             
             const topK = calculateTopK(dateStr);
@@ -1629,12 +1897,313 @@
                     const atrVal = currSigs.z_atr !== undefined ? currSigs.z_atr : 0;
                     const volMult = 1.0 + (Math.max(0, atrVal) * 0.1);
                     
+                    // ---------------------------------------------------------------
+                    // LAYER A: underlying forecast. Pure functions, no DOM, so the
+                    // numeric behaviour is testable without a browser.
+                    // ---------------------------------------------------------------
+
+                    // Every published level carries the statistic it came from. A level
+                    // whose source is a hard-coded constant is labelled as such rather
+                    // than being dressed up as a modelled output.
+                    // ==================================================================
+                    // Layer A -- pure forecast
+                    //
+                    // buildUnderlyingForecast() is the single source of truth for
+                    // the directional view and every level derived from it. It is
+                    // PURE: no DOM, no globals, no rendering. Both Layer B
+                    // (option construction) and the gap state read its structured
+                    // output rather than re-deriving levels from display strings.
+                    //
+                    // `direction` is the machine-readable field. Display text such
+                    // as "LONG BIAS" is generated FROM it, never parsed back out.
+                    // ==================================================================
+                    function buildUnderlyingForecast(inp) {
+                        const price = inp.price;
+                        const volMult = inp.volMult;
+                        const isBTST = !!inp.isBTST;
+
+                        // --- qualification: direction gates (unchanged logic) ---
+                        const longOk = inp.upC > inp.downC
+                            && (inp.pUp > 45 || inp.pUp + inp.pRg > 70)
+                            && inp.mfe50 > inp.mae50 * 1.1;
+                        const shortOk = inp.downC > inp.upC
+                            && (inp.pDn > 45 || inp.pDn + inp.pRg > 70)
+                            && inp.mae50 > inp.mfe50 * 1.1;
+                        const direction = longOk ? 'LONG' : (shortOk ? 'SHORT' : null);
+
+                        if (!direction) {
+                            return {
+                                direction: null,
+                                bias: "RANGE / NO TRADE",
+                                biasClass: "text-gray-400",
+                                accentClass: "bg-gray-500",
+                                action: "DO NOTHING",
+                                conf: "Choppy / Conflicting Signals",
+                                qualified: false,
+                                isBTST: isBTST,
+                                // No trade means no option construction and no gap
+                                // state; consumers must not invent either.
+                                option_inputs: null,
+                                gap: computeBtstGap(null, null, isBTST),
+                            };
+                        }
+
+                        const isLong = direction === 'LONG';
+                        // Entry sits at half the shallow adverse excursion, floored
+                        // at 0.05% so a very shallow MAE cannot put the fill on top
+                        // of spot. This is the ASSUMED FILL; the trigger is separate.
+                        const shallowPct = Math.max(0.05, (isLong ? inp.mae25 : inp.mfe25) * 0.5);
+                        const entryPrice = isLong
+                            ? price + price * (shallowPct / 100)
+                            : price - price * (shallowPct / 100);
+
+                        // Targets ride the FAVOURABLE excursion; the stop and the
+                        // invalidation ride the ADVERSE one. For a SHORT those swap.
+                        const t1Pct = (isLong ? inp.mfe50 : inp.mae50) * volMult;
+                        const t2Pct = (isLong ? inp.mfe75 : inp.mae75) * volMult;
+                        const stopPct = (isLong ? inp.mae75 : inp.mfe75) * volMult;
+                        const invalPct = (isLong ? inp.mae50 : inp.mfe50) * volMult;
+                        const revPct = (isLong ? inp.mfe90 : inp.mae90) * volMult;
+
+                        const away = function (pct) { return price * (pct / 100); };
+                        const t1Price = isLong ? price + away(t1Pct) : price - away(t1Pct);
+                        const t2Price = isLong ? price + away(t2Pct) : price - away(t2Pct);
+                        const stopPrice = isLong ? price - away(stopPct) : price + away(stopPct);
+                        const invalPrice = isLong ? price - away(invalPct) : price + away(invalPct);
+                        const revPrice = isLong ? price + away(revPct) : price - away(revPct);
+
+                        // --- R:R ---
+                        // Both legs of the ratio come from the SAME percentile
+                        // family (75th) and are measured from the assumed fill.
+                        // Pairing a median target against a 75th-percentile stop
+                        // structurally biases the ratio below 1.0. There is no
+                        // 10-point clamp on the stop: the old
+                        // `Math.min(price - 10, stopPrice)` DISPLAYED a clamped
+                        // level while the ratio used the unclamped one, so the
+                        // number on screen did not match the ratio beside it.
+                        const risk = isLong ? entryPrice - stopPrice : stopPrice - entryPrice;
+                        const reward = isLong ? t2Price - entryPrice : entryPrice - t2Price;
+                        const rrValue = risk > 0 ? reward / risk : null;
+
+                        const confirmed = isLong ? inp.pUp > 60 : inp.pDn > 60;
+                        const action = isBTST
+                            ? "EVALUATE BTST " + direction
+                            : (confirmed
+                                ? (isLong ? "BUY PULLBACK / BREAKOUT" : "SELL RALLY / BREAKDOWN")
+                                : "WAIT FOR TRIGGER");
+
+                        return {
+                            direction: direction,
+                            bias: direction + " BIAS",
+                            biasClass: isLong ? "text-green-400" : "text-red-400",
+                            accentClass: isLong ? "bg-green-500" : "bg-red-500",
+                            qualified: true,
+                            isBTST: isBTST,
+                            price: price,
+                            volMult: volMult,
+                            action: action,
+
+                            // Trigger (the price action that must occur) is kept
+                            // distinct from the assumed fill used for the R:R.
+                            entry: {
+                                trigger_price: entryPrice,
+                                assumed_fill: entryPrice,
+                                pct: shallowPct,
+                                label: (isLong ? "≥ " : "≤ ") + entryPrice.toFixed(0),
+                                trigger_text: isBTST
+                                    ? (isLong
+                                        ? "Gap up > 0.5%: don't chase | flat: normal entry"
+                                        : "Gap down < -0.5%: don't chase | flat: normal entry")
+                                    : (isLong
+                                        ? "15m close > " + entryPrice.toFixed(0) + " + volume > avg"
+                                        : "15m close < " + entryPrice.toFixed(0) + " + breakdown"),
+                            },
+                            t1: { price: t1Price, pct: t1Pct },
+                            t2: { price: t2Price, pct: t2Pct },
+                            stop: { price: stopPrice, pct: stopPct },
+                            invalidation: { price: invalPrice, pct: invalPct },
+                            reversal: { price: revPrice, pct: revPct },
+
+                            rr: {
+                                value: rrValue,
+                                risk: risk,
+                                reward: reward,
+                                basis: "Fill " + entryPrice.toFixed(0) + " → T2 " + t2Price.toFixed(0)
+                                    + " vs stop " + stopPrice.toFixed(0),
+                            },
+
+                            // Layer B consumes THESE, so the option trade is priced
+                            // off the same percentiles as the Layer A ratio rather
+                            // than a second, unrelated set of levels.
+                            option_inputs: {
+                                direction: direction,
+                                expected_move_pct: t2Pct,
+                                invalidation_pct: stopPct,
+                                btst: isBTST,
+                            },
+                            gap: computeBtstGap(direction, null, isBTST),
+                        };
+                    }
+
+                    // Overnight gap state, as structured data.
+                    //
+                    // Returns gap_direction / gap_points / gap_pct rather than a
+                    // sentence, so no downstream logic has to infer direction from
+                    // display text. UNKNOWN is the honest default: with no actual
+                    // overnight figure supplied there is no gap to report, and
+                    // inventing one would be worse than saying so.
+                    function computeBtstGap(direction, overnightPct, isBTST) {
+                        if (!isBTST) {
+                            return {
+                                gap_direction: 'UNKNOWN', gap_points: null, gap_pct: null,
+                                trigger_gap_pct: 0.5, state: 'NOT_APPLICABLE',
+                            };
+                        }
+                        if (direction === null) {
+                            return {
+                                gap_direction: 'UNKNOWN', gap_points: null, gap_pct: null,
+                                trigger_gap_pct: 0.5, state: 'NO_TRADE',
+                            };
+                        }
+                        if (overnightPct === null || overnightPct === undefined
+                            || isNaN(overnightPct)) {
+                            return {
+                                gap_direction: 'UNKNOWN', gap_points: null, gap_pct: null,
+                                trigger_gap_pct: 0.5, state: 'NO_OVERNIGHT_DATA',
+                            };
+                        }
+                        const pct = Number(overnightPct);
+                        // EPS keeps an exactly-flat open classified FLAT rather
+                        // than tripping to UP/DOWN on floating-point dust.
+                        const dir = pct > 0.01 ? 'UP' : (pct < -0.01 ? 'DOWN' : 'FLAT');
+                        const aligned = (direction === 'LONG' && dir === 'UP')
+                            || (direction === 'SHORT' && dir === 'DOWN');
+                        return {
+                            gap_direction: dir,
+                            gap_pct: pct,
+                            gap_points: null,
+                            trigger_gap_pct: 0.5,
+                            state: aligned ? 'ALIGNED' : (dir === 'FLAT' ? 'FLAT' : 'ADVERSE'),
+                        };
+                    }
+
+                    // Human-readable provenance, generated FROM the structured
+                    // forecast. Display only -- nothing reads this back.
+                    function buildProvenance(fc) {
+                        if (!fc || !fc.qualified) return null;
+                        const vm = fc.volMult && fc.volMult !== 1.0
+                            ? " × vol adj " + fc.volMult.toFixed(3) : "";
+                        const isLong = fc.direction === 'LONG';
+                        const src = (pct, fav) => (fav
+                            ? "MFE " : "MAE ") + pct.toFixed(2) + "%" + vm;
+                        return [
+                            ['Entry (assumed fill)', fc.entry.assumed_fill.toFixed(0),
+                                (isLong ? "shallow pullback, " : "shallow bounce, ")
+                                    + fc.entry.pct.toFixed(2) + "% (min 0.05%)"],
+                            ['Target 1', fc.t1.price.toFixed(0),
+                                (isLong ? "50th pct " : "50th pct ") + src(fc.t1.pct, isLong)],
+                            ['Target 2', fc.t2.price.toFixed(0),
+                                "75th pct " + src(fc.t2.pct, isLong)],
+                            ['Invalidation', fc.invalidation.price.toFixed(0),
+                                "50th pct " + src(fc.invalidation.pct, !isLong)],
+                            ['Stop', fc.stop.price.toFixed(0),
+                                "75th pct " + src(fc.stop.pct, !isLong)],
+                            ['R:R basis', '1 : x',
+                                'reward and risk measured from the assumed fill, same-percentile family'],
+                        ];
+                    }
+
+                    // Three hypothetical gap bands for BTST. The old single-line
+                    // confirmation said "Gap up > 0.5%: Don't chase" on a LONG,
+                    // which contradicts requiring an upside breakout entry: a gap in
+                    // the trade's own direction is precisely the setup being waited
+                    // for. These scenarios make each case explicit and never silently
+                    // override the underlying view.
+                    function buildGapScenarios(fc) {
+                        if (!fc || !fc.qualified || !fc.isBTST) return null;
+                        const dir = fc.direction;
+                        const triggerGap = 0.5;
+                        const base = fc.price;
+                        function band(pct) { return base * (1 + pct / 100); }
+                        const gapUp = band(triggerGap), gapDn = band(-triggerGap);
+                        const survived = function (gap) {
+                            if (dir === 'LONG') {
+                                return gap >= 0
+                                    ? "entry trigger met; stop still intact"
+                                    : "opens below fill — wait for the close trigger";
+                            }
+                            return gap <= 0
+                                ? "entry trigger met; stop still intact"
+                                : "opens above fill — wait for the breakdown trigger";
+                        };
+                        const adverse = dir === 'LONG'
+                            ? { label: "Gap DOWN", pct: -triggerGap, level: gapDn }
+                            : { label: "Gap UP", pct: triggerGap, level: gapUp };
+                        const aligned = dir === 'LONG'
+                            ? { label: "Gap UP", pct: triggerGap, level: gapUp }
+                            : { label: "Gap DOWN", pct: -triggerGap, level: gapDn };
+                        return {
+                            aligned: Object.assign({ survives: survived(aligned.pct) }, aligned),
+                            flat: { label: "Flat open", pct: 0, level: base, survives: survived(0) },
+                            adverse: Object.assign({ survives: survived(adverse.pct) }, adverse),
+                            triggerGap: triggerGap,
+                        };
+                    }
+
+                    // Renders the Layer A ratio. The ratio is always displayed when
+                    // computable, including below 1.0 -- suppressing it would hide a
+                    // real (unfavourable) result. No threshold is applied because
+                    // config/settings.json defines no minimum R:R.
+                    function renderRR(rrVal, basis) {
+                        if (rrVal === null || rrVal === undefined) {
+                            return { display: "--", warning: null, basis: basis || "" };
+                        }
+                        return {
+                            display: "1 : " + rrVal.toFixed(2),
+                            warning: rrVal < 1.0 ? rrVal : null,
+                            basis: basis || ""
+                        };
+                    }
+
+                    // Human-readable label for the discount rate, built only from
+                    // structured fields on the payload. Never infers state from
+                    // prose, and never invents a rate.
+                    function describeRiskFreeRate(payload) {
+                        if (!payload || !payload.risk_free_rate_configured
+                            || payload.risk_free_rate === null
+                            || payload.risk_free_rate === undefined) {
+                            return "risk-free rate NOT configured — priced at r=0 (config options.risk_free_rate)";
+                        }
+                        const pct = (Number(payload.risk_free_rate) * 100).toFixed(2) + "%";
+                        const src = payload.risk_free_rate_source;
+                        const asOf = payload.risk_free_rate_as_of;
+                        const type = payload.risk_free_rate_type;
+                        if (type === "proxy") {
+                            // A 10-year yield is the wrong discount rate for a
+                            // 6-54 day option. Say so explicitly rather than
+                            // presenting a maturity-matched precision that does
+                            // not exist.
+                            const dtes = (payload.candidates || [])
+                                .map(c => c.dte).filter(d => d !== null && d !== undefined);
+                            const range = dtes.length
+                                ? (Math.min.apply(null, dtes) + "-" + Math.max.apply(null, dtes) + "d")
+                                : "short";
+                            return "risk-free " + pct + " (" + (src || "proxy")
+                                + (asOf ? ", as of " + asOf : "")
+                                + ") — a single-point PROXY, not a maturity-matched"
+                                + " curve; discount factors carry basis error vs the true"
+                                + " DTE " + range + " term structure";
+                        }
+                        return "risk-free " + pct + (src ? " (" + src + ")" : "");
+                    }
+
                     let bias = "NO TRADE";
                     let biasColor = "text-gray-400";
                     let accentColor = "bg-gray-500";
                     let entry = "--", conf = "--", t1 = "--", t2 = "--";
                     let invalidation = "--", stop = "--";
                     let rr = "--", revZ = "--", revT = "--", action = "DO NOTHING";
+                    let rrWarning = null, rrBasis = "", provenance = null;
                     
                     const isBTST = currentMode === 'historical';
                     const timeHorizon = isBTST ? 'Daily' : '15m';
@@ -1645,106 +2214,61 @@
                     if(confLabel) confLabel.textContent = isBTST ? 'Overnight Rules' : 'Confirmation';
                     if(revLabel) revLabel.textContent = isBTST ? 'Daily Reversal Watch' : 'Potential Exhaustion';
                     
-                    // Evaluate long/short using true MAE magnitude (Math.abs already applied to MAE array)
-                    // We compare mfe50 to mae50 (both positive magnitudes)
-                    if (upC > downC && (pUp > 45 || pUp*1 + pRg*1 > 70) && mfe50 > mae50 * 1.1) {
-                        bias = "LONG BIAS";
-                        biasColor = "text-green-400";
-                        accentColor = "bg-green-500";
-                        
-                        // Entry Zone: reference level based on MAE25 (shallow pullback zone)
-                        const entryOffset = currPrice * (Math.max(0.05, mae25 * 0.5) / 100);
-                        const entryPrice = currPrice + entryOffset;
-                        entry = "≥ " + entryPrice.toFixed(0);
-                        
-                        // Confirmation: actual price-action trigger
-                        if (isBTST) {
-                            conf = "Gap up >0.5%: Don't chase | Flat: Normal Entry";
-                        } else {
-                            conf = "15m close > " + entryPrice.toFixed(0) + " + Vol > Avg";
-                        }
-                        
-                        // Target 1: 50th percentile MFE (conservative)
-                        const t1Offset = currPrice * (mfe50 * volMult / 100);
-                        // Target 2: 75th percentile MFE
-                        const t2Offset = currPrice * (mfe75 * volMult / 100);
-                        
-                        t1 = (currPrice + t1Offset).toFixed(0);
-                        t2 = (currPrice + t2Offset).toFixed(0);
-                        
-                        // Invalidation: MAE50 — thesis is no longer valid (rethink position)
-                        const invalOffset = currPrice * (mae50 * volMult / 100);
-                        const invalPrice = currPrice - invalOffset;
-                        invalidation = "< " + invalPrice.toFixed(0);
-                        
-                        // Stop Loss: MAE75 — hard risk management exit
-                        const stopOffset = currPrice * (mae75 * volMult / 100);
-                        const stopPrice = currPrice - stopOffset;
-                        stop = Math.min(currPrice - 10, stopPrice).toFixed(0); 
-                        
-                        const risk = entryPrice - stopPrice;
-                        const reward = (currPrice + t1Offset) - entryPrice;
-                        rr = risk > 0 ? "1 : " + (reward/risk).toFixed(1) : "--";
-                        
-                        // Reversal exhaustion zone (90th percentile extension)
-                        const revOffset = currPrice * (mfe90 * volMult / 100);
-                        revZ = t2 + " - " + (currPrice + revOffset).toFixed(0);
-                        revT = isBTST ? "Close < " + t2 : "15m close < " + t1;
-                        
-                        action = isBTST ? "EVALUATE BTST LONG" : (pUp > 60 ? "BUY PULLBACK / BREAKOUT" : "WAIT FOR TRIGGER");
-                        
-                    } else if (downC > upC && (pDn > 45 || pDn*1 + pRg*1 > 70) && mae50 > mfe50 * 1.1) {
-                        bias = "SHORT BIAS";
-                        biasColor = "text-red-400";
-                        accentColor = "bg-red-500";
-                        
-                        // Entry Zone: reference level based on MFE25 (shallow bounce zone)
-                        const entryOffset = currPrice * (Math.max(0.05, mfe25 * 0.5) / 100);
-                        const entryPrice = currPrice - entryOffset;
-                        entry = "≤ " + entryPrice.toFixed(0);
-                        
-                        // Confirmation: actual price-action trigger
-                        if (isBTST) {
-                            conf = "Gap down <-0.5%: Don't chase | Flat: Normal Entry";
-                        } else {
-                            conf = "15m close < " + entryPrice.toFixed(0) + " + Breakdown";
-                        }
-                        
-                        // Targets use MAE (adverse excursion is the profit direction for shorts)
-                        const t1Offset = currPrice * (mae50 * volMult / 100);
-                        const t2Offset = currPrice * (mae75 * volMult / 100);
-                        
-                        const shortT1 = currPrice - t1Offset;
-                        const shortT2 = currPrice - t2Offset;
-                        
-                        t1 = shortT1.toFixed(0);
-                        t2 = shortT2.toFixed(0);
-                        
-                        // Invalidation: MFE50 — thesis is wrong (price bounced too far)
-                        const invalOffset = currPrice * (mfe50 * volMult / 100);
-                        const invalPrice = currPrice + invalOffset;
-                        invalidation = "> " + invalPrice.toFixed(0);
-                        
-                        // Stop Loss: MFE75 — hard risk management exit
-                        const stopOffset = currPrice * (mfe75 * volMult / 100);
-                        const stopPrice = currPrice + stopOffset;
-                        stop = Math.max(currPrice + 10, stopPrice).toFixed(0);
-                        
-                        const risk = stopPrice - entryPrice;
-                        const reward = entryPrice - shortT1;
-                        rr = risk > 0 ? "1 : " + (reward/risk).toFixed(1) : "--";
-                        
-                        const revOffset = currPrice * (mae90 * volMult / 100);
-                        revZ = t2 + " - " + (currPrice - revOffset).toFixed(0);
-                        revT = isBTST ? "Close > " + t2 : "15m close > " + t1;
-                        
-                        action = isBTST ? "EVALUATE BTST SHORT" : (pDn > 60 ? "SELL RALLY / BREAKDOWN" : "WAIT FOR TRIGGER");
-                    } else {
-                        bias = "RANGE / NO TRADE";
-                        biasColor = "text-gray-400";
-                        accentColor = "bg-gray-500";
-                        conf = "Choppy / Conflicting Signals";
-                    }
+                    // Single source of truth for the directional view and every
+                    // level derived from it. Pure: no DOM, no globals.
+                    const fc = buildUnderlyingForecast({
+                        price: currPrice,
+                        upC: upC, downC: downC, pUp: pUp, pDn: pDn, pRg: pRg,
+                        mfe25: mfe25, mae25: mae25,
+                        mfe50: mfe50, mae50: mae50,
+                        mfe75: mfe75, mae75: mae75,
+                        mfe90: mfe90, mae90: mae90,
+                        volMult: volMult, isBTST: isBTST
+                    });
+
+                    bias = fc.bias;
+                    biasColor = fc.biasClass;
+                    accentColor = fc.accentClass;
+                    conf = fc.qualified ? fc.entry.trigger_text : fc.conf;
+                    entry = fc.qualified ? fc.entry.label : "--";
+                    t1 = fc.qualified ? fc.t1.price.toFixed(0) : "--";
+                    t2 = fc.qualified ? fc.t2.price.toFixed(0) : "--";
+                    invalidation = fc.qualified
+                        ? (fc.direction === "LONG" ? "< " : "> ") + fc.invalidation.price.toFixed(0)
+                        : "--";
+                    stop = fc.qualified ? fc.stop.price.toFixed(0) : "--";
+                    const rrView = renderRR(fc.qualified ? fc.rr.value : null,
+                                            fc.qualified ? fc.rr.basis : "");
+                    rr = rrView.display;
+                    rrWarning = rrView.warning;
+                    rrBasis = rrView.basis;
+                    provenance = buildProvenance(fc);
+                    // Reversal exhaustion zone (90th percentile extension).
+                    revZ = fc.qualified
+                        ? t2 + " - " + fc.reversal.price.toFixed(0) : "--";
+                    revT = fc.qualified
+                        ? (isBTST ? "Close " : "15m close ")
+                          + (fc.direction === "LONG" ? "< " : "> ") + t2 : "--";
+                    action = fc.action;
+
+                    // Layer B consumes the persisted chain. Greeks come from the
+                    // exporter; the browser only prices the scenario legs. An absent
+                    // `_options` key means "no chain published" and renders as such.
+                    //
+                    // Direction and the two move sizes come from the structured
+                    // forecast, never from the `bias` display string. An unqualified
+                    // day has option_inputs === null and constructs nothing.
+                    (function () {
+                        var _payload = (typeof dashboardData !== 'undefined' && dashboardData)
+                            ? dashboardData._options : null;
+                        var _rate = (_payload && _payload.risk_free_rate !== null
+                            && _payload.risk_free_rate !== undefined) ? _payload.risk_free_rate : 0.0;
+                        var _inputs = fc.option_inputs;
+                        var _trade = _inputs
+                            ? chooseOptionCandidate(_payload, _inputs, currPrice, _rate)
+                            : null;
+                        renderOptionLayer(_payload, { option_trade: _trade, forecast: fc });
+                    })();
                     
                     document.getElementById('te-bias').textContent = bias;
                     document.getElementById('te-bias').className = `text-xl font-black ${biasColor} uppercase tracking-widest bg-gray-800 px-4 py-1 rounded`;
@@ -1757,6 +2281,68 @@
                     document.getElementById('te-invalidation').textContent = invalidation;
                     document.getElementById('te-stop').textContent = stop;
                     document.getElementById('te-rr').textContent = rr;
+                    document.getElementById('te-rr-basis').textContent = rrBasis ? "Basis: " + rrBasis : "";
+
+                    // A sub-1.0 ratio is shown, not hidden. The badge is a warning
+                    // about the geometry of the trade, not a trade gate.
+                    const rrWarnEl = document.getElementById('te-rr-warning');
+                    const rrWarnDetail = document.getElementById('te-rr-warning-detail');
+                    if (rrWarning) {
+                        rrWarnEl.classList.remove('hidden');
+                        rrWarnDetail.textContent = rrWarning + ". No minimum R:R is configured, so this is reported, not blocked.";
+                    } else {
+                        rrWarnEl.classList.add('hidden');
+                        rrWarnDetail.textContent = "";
+                    }
+
+                    // Provenance table
+                    const provEl = document.getElementById('te-provenance');
+                    const provBody = document.querySelector('#te-provenance-table tbody');
+                    if (provenance && provBody) {
+                        provEl.classList.remove('hidden');
+                        provBody.innerHTML = provenance.map(function (row) {
+                            return "<tr class='border-b border-gray-800'>"
+                                + "<td class='py-1 pr-2 text-gray-300 whitespace-nowrap'>" + row[0] + "</td>"
+                                + "<td class='py-1 pr-2 font-mono text-white'>" + row[1] + "</td>"
+                                + "<td class='py-1 text-gray-500'>" + row[2] + "</td></tr>";
+                        }).join('');
+                    } else {
+                        provEl.classList.add('hidden');
+                    }
+
+                    // Overnight gap scenarios (BTST only).
+                    // Direction comes from the structured forecast. The previous
+                    // version inferred it by searching the provenance row text for
+                    // the word "pullback", which meant a copy edit to a label could
+                    // silently flip the gap logic.
+                    const gapEl = document.getElementById('te-gap');
+                    const gapBody = document.getElementById('te-gap-body');
+                    const gapNote = document.getElementById('te-gap-note');
+                    const gaps = buildGapScenarios(fc);
+                    if (gaps) {
+                        gapEl.classList.remove('hidden');
+                        gapBody.innerHTML = [gaps.adverse, gaps.flat, gaps.aligned].map(function (s) {
+                            const tone = s === gaps.aligned ? "border-green-700 bg-green-900/30"
+                                : (s === gaps.flat ? "border-gray-600 bg-gray-800/40" : "border-red-700 bg-red-900/30");
+                            const sign = s.pct > 0 ? "+" : "";
+                            return "<div class='rounded border " + tone + " p-2'>"
+                                + "<div class='font-bold text-xs uppercase tracking-wider'>" + s.label + " (" + sign + s.pct.toFixed(1) + "%)</div>"
+                                + "<div class='font-mono text-white text-lg'>" + s.level.toFixed(0) + "</div>"
+                                + "<div class='text-[11px] text-gray-400 mt-1'>" + s.survives + "</div></div>";
+                        }).join("");
+                        // The ACTUAL gap is structured data, not prose. It is UNKNOWN
+                        // unless an overnight figure was supplied; saying so is the
+                        // point, since a guessed gap would be a fabricated input.
+                        const gapState = fc.gap;
+                        gapNote.textContent = "Gap threshold " + gaps.triggerGap.toFixed(1)
+                            + "% is the existing 'don't chase' rule, shown as scenarios rather than applied as a veto. "
+                            + "Actual overnight gap: " + gapState.gap_direction
+                            + (gapState.gap_pct === null ? " (no overnight data supplied)" : "")
+                            + ".";
+                    } else {
+                        gapEl.classList.add('hidden');
+                    }
+
                     document.getElementById('te-rev-zone').textContent = revZ;
                     document.getElementById('te-rev-trig').textContent = revT;
                     
@@ -1770,7 +2356,302 @@
                     }
                 }
                 
-                let instSummary = `
+                    // ---------------------------------------------------------------
+                    // LAYER B: option trade construction.
+                    //
+                    // Delta/gamma/theta/vega are COMPUTED AND PERSISTED by the
+                    // exporter (core/options_chain.py) and are used verbatim. The
+                    // only model the browser runs is a Black-Scholes *price*, needed
+                    // to value the option at the forecast's target and stop legs.
+                    // The ratio is always in option price space; the underlying's
+                    // point R:R is never reused here.
+                    // ---------------------------------------------------------------
+                    function normCdf(x) {
+                        // Abramowitz & Stegun 7.1.26 via erf; accurate to ~1e-7, which
+                        // is far tighter than the precision this display needs.
+                        var t = 1 / (1 + 0.2316419 * Math.abs(x));
+                        var d = 0.3989422804014327 * Math.exp(-x * x / 2);
+                        var p = d * t * (0.319381530 + t * (-0.356563782 + t * (1.781477937
+                            + t * (-1.821255978 + t * 1.330274429))));
+                        return x > 0 ? 1 - p : p;
+                    }
+
+                    function bsPrice(spot, strike, years, vol, rate, leg) {
+                        if (!(spot > 0) || !(strike > 0) || !(years > 0) || !(vol > 0)) return null;
+                        var sq = Math.sqrt(years);
+                        var d1 = (Math.log(spot / strike) + (rate + 0.5 * vol * vol) * years) / (vol * sq);
+                        var d2 = d1 - vol * sq;
+                        var df = Math.exp(-rate * years);
+                        if (leg === "CE") {
+                            return spot * normCdf(d1) - strike * df * normCdf(d2);
+                        }
+                        if (leg === "PE") {
+                            return strike * df * normCdf(-d2) - spot * normCdf(-d1);
+                        }
+                        return null;
+                    }
+
+                    // Prices a single leg at the forecast's target and stop, re-based
+                    // to the traded premium so the entry leg equals the LTP exactly.
+                    // Without the re-basing, risk = ltp - model(stop) goes negative
+                    // whenever the model price sits above the LTP.
+                    function priceLegScenarios(leg, spot, rate, targetPct, stopPct, direction) {
+                        if (!leg || leg.iv === null || leg.iv === undefined || !(leg.ltp > 0)) {
+                            return { rr: null, reason: "no usable implied volatility or LTP" };
+                        }
+                        var years = (leg.dte > 0) ? leg.dte / 365.0 : null;
+                        if (years === null) return { rr: null, reason: "expiry has no positive time remaining" };
+                        var modelSpot = bsPrice(spot, leg.strike, years, leg.iv, rate, leg.leg);
+                        if (modelSpot === null) return { rr: null, reason: "option price could not be computed" };
+
+                        var tgtSpot, stopSpot;
+                        if (direction === "SHORT") {
+                            tgtSpot = spot * (1 - targetPct / 100);
+                            stopSpot = spot * (1 + stopPct / 100);
+                        } else {
+                            tgtSpot = spot * (1 + targetPct / 100);
+                            stopSpot = spot * (1 - stopPct / 100);
+                        }
+                        function rebase(s) {
+                            var raw = bsPrice(s, leg.strike, years, leg.iv, rate, leg.leg);
+                            return raw === null ? null : Math.max(0, leg.ltp + (raw - modelSpot));
+                        }
+                        var atTarget = rebase(tgtSpot), atStop = rebase(stopSpot);
+                        if (atTarget === null || atStop === null) {
+                            return { rr: null, reason: "scenario price could not be computed" };
+                        }
+                        var risk = leg.ltp - atStop, reward = atTarget - leg.ltp;
+                        if (risk <= 0) {
+                            return {
+                                rr: null,
+                                reason: "option is worth more at the underlying stop than at entry",
+                                option_at_target: atTarget, option_at_stop: atStop,
+                                ltp: leg.ltp, option_risk: risk, option_reward: reward
+                            };
+                        }
+                        return {
+                            rr: reward / risk,
+                            ltp: leg.ltp,
+                            option_at_target: atTarget,
+                            option_at_stop: atStop,
+                            option_risk: risk,
+                            option_reward: reward,
+                            greeks: leg.greeks || null,
+                            model_vs_ltp_gap_pct: (modelSpot - leg.ltp) / leg.ltp * 100,
+                            reason: null
+                        };
+                    }
+
+                    // Mirrors core/option_pricing._score_candidate. Both candidates
+                    // are always scored and the caller picks, so DTE is a real input
+                    // rather than "nearest wins by default".
+                    function scoreCandidate(ev, dte, btst) {
+                        if (dte === null || dte === undefined) return { score: -1e9, notes: ["no DTE"] };
+                        var score = 0.0, notes = [];
+                        if (btst && dte < 3) {
+                            score -= 100.0;
+                            notes.push("DTE " + dte + " below BTST minimum 3");
+                        } else if (btst && dte < 7) {
+                            score -= 5.0;
+                            notes.push("DTE " + dte + " is very short for an overnight hold");
+                        }
+                        // A delta that actually expresses the forecast, without being
+                        // so far OTM that the payoff is mostly unpriceable optionality.
+                        var delta = ev.greeks && ev.greeks.delta;
+                        if (delta !== null && delta !== undefined) {
+                            score += Math.min(Math.abs(delta), 0.7) * 10.0;
+                        }
+                        var theta = ev.greeks && ev.greeks.theta;
+                        if (theta !== null && theta !== undefined && ev.ltp > 0) {
+                            var drag = Math.abs(theta) / ev.ltp;
+                            score -= drag * 20.0;
+                            if (drag > 0.05) {
+                                notes.push("theta drag " + (drag * 100).toFixed(1) + "%/day of premium");
+                            }
+                        }
+                        if (ev.rr !== null && ev.rr !== undefined) {
+                            score += Math.min(ev.rr, 3.0);
+                        }
+                        return { score: score, notes: notes };
+                    }
+
+                    function chooseOptionCandidate(payload, forecast, spot, rate) {
+                        if (!payload || !payload.candidates || !payload.candidates.length) return null;
+                        if (!forecast || !forecast.direction) return null;
+                        var wantLeg = forecast.direction === "LONG" ? "CE" : "PE";
+                        if (forecast.direction !== "LONG" && forecast.direction !== "SHORT") return null;
+                        if (forecast.expected_move_pct === null || forecast.invalidation_pct === null) return null;
+
+                        var scored = [];
+                        payload.candidates.forEach(function (c) {
+                            (c.legs || []).forEach(function (leg) {
+                                if (leg.leg !== wantLeg) return;
+                                var r = priceLegScenarios(leg, spot, rate,
+                                    forecast.expected_move_pct, forecast.invalidation_pct,
+                                    forecast.direction);
+                                var s = scoreCandidate({ greeks: r.greeks, ltp: r.ltp, rr: r.rr },
+                                    c.dte, forecast.btst);
+                                scored.push({ leg: leg, cand: c, r: r, score: r.rr === null ? -1e9 : s.score, notes: s.notes });
+                            });
+                        });
+                        if (!scored.length) return null;
+                        // Priceable candidates beat unpriceable ones, then by score.
+                        scored.sort(function (a, b) {
+                            var ap = a.r.rr === null ? -Infinity : a.score;
+                            var bp = b.r.rr === null ? -Infinity : b.score;
+                            return bp - ap;
+                        });
+                        var best = scored[0];
+                        return {
+                            direction: forecast.direction,
+                            leg: wantLeg,
+                            strike: best.leg.strike,
+                            expiry: best.leg.expiry,
+                            dte: best.leg.dte,
+                            is_monthly: !!best.cand.is_monthly,
+                            ltp: best.leg.ltp,
+                            iv: best.leg.iv,
+                            rr: best.r.rr,
+                            reason: best.r.reason,
+                            option_at_target: best.r.option_at_target,
+                            option_at_stop: best.r.option_at_stop,
+                            option_risk: best.r.option_risk,
+                            option_reward: best.r.option_reward,
+                            greeks: best.r.greeks,
+                            model_vs_ltp_gap_pct: best.r.model_vs_ltp_gap_pct,
+                            notes: best.notes || [],
+                            all_candidates: scored.map(function (s) {
+                                return { expiry: s.cand.expiry, dte: s.cand.dte,
+                                    strike: s.leg.strike, rr: s.r.rr, score: s.score };
+                            })
+                        };
+                    }
+
+                    function renderOptionLayer(payload, forecast) {
+                        const statusEl = document.getElementById('opt-status');
+                        const bodyEl = document.getElementById('opt-body');
+                        const candsEl = document.getElementById('opt-candidates');
+                        const asmEl = document.getElementById('opt-assumptions');
+                        if (!bodyEl) return;
+
+                        function setStatus(text, cls) {
+                            statusEl.textContent = text;
+                            statusEl.className = "text-xs font-bold uppercase tracking-widest px-3 py-1 rounded " + cls;
+                        }
+
+                        if (!payload || !payload.candidates || !payload.candidates.length) {
+                            setStatus("NO CHAIN", "bg-gray-800 text-gray-400");
+                            bodyEl.textContent = "No option chain published for this session.";
+                            candsEl.innerHTML = "";
+                            asmEl.textContent = "";
+                            return;
+                        }
+
+                        // Stale chain: refuse to price rather than show an expired IV.
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        const stale = payload.candidates.filter(function (c) {
+                            const e = new Date(c.expiry + "T00:00:00");
+                            return isNaN(e.getTime()) || e <= today;
+                        });
+                        if (stale.length) {
+                            setStatus("STALE CHAIN", "bg-red-900 text-red-300");
+                            bodyEl.innerHTML = "<span class='text-red-300'>Every listed expiry has already passed ("
+                                + stale.map(function (c) { return c.expiry; }).join(", ")
+                                + "). No option trade is shown rather than pricing an expired series.</span>";
+                            candsEl.innerHTML = "";
+                            asmEl.textContent = "";
+                            return;
+                        }
+
+                        setStatus(payload.candidates.length + " EXPIRIES", "bg-purple-900 text-purple-300");
+
+                        // Candidate summary: both are always listed so the DTE choice is
+                        // visible rather than hidden inside the model.
+                        candsEl.innerHTML = payload.candidates.map(function (c) {
+                            const role = c.is_monthly ? "next monthly" : "front";
+                            return "<div class='flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-400 border-t border-gray-800 pt-2 mt-2'>"
+                                + "<span><span class='text-gray-500'>" + role + ":</span> "
+                                + "<span class='text-white'>" + c.expiry + "</span></span>"
+                                + "<span><span class='text-gray-500'>DTE:</span> "
+                                + "<span class='text-white'>" + c.dte + "</span></span>"
+                                + "<span><span class='text-gray-500'>legs kept:</span> "
+                                + "<span class='text-white'>" + c.legs.length + "</span></span></div>";
+                        }).join("");
+
+                        const trade = forecast && forecast.option_trade;
+                        if (!trade) {
+                            bodyEl.textContent = "Chain available, but no option trade is priced for this view "
+                                + "(no directional forecast, or no usable IV on any near-ATM leg).";
+                            asmEl.textContent = "";
+                            return;
+                        }
+
+                        if (trade.rr === null || trade.rr === undefined) {
+                            bodyEl.innerHTML = "<div class='font-bold text-white text-lg'>"
+                                + trade.leg + " " + trade.strike + " (" + trade.expiry + ", DTE " + trade.dte + ")</div>"
+                                + "<div class='text-red-300 mt-1'>No R:R available: " + (trade.reason || "unpriceable") + "</div>"
+                                + "<div class='text-gray-500 mt-1'>The underlying R:R above is NOT a substitute — it is measured in index points, not option premium.</div>";
+                            asmEl.textContent = "";
+                            return;
+                        }
+
+                        const rrTone = trade.rr < 1.0 ? "text-red-400" : "text-green-400";
+                        const g = trade.greeks || {};
+                        bodyEl.innerHTML =
+                            "<div class='flex flex-wrap items-baseline gap-3'>"
+                            + "<span class='font-black text-2xl text-white'>"
+                            + (trade.direction === "LONG" ? "BUY" : "SELL") + " " + trade.leg + "</span>"
+                            + "<span class='font-mono text-xl text-purple-300'>" + trade.strike + "</span>"
+                            + "<span class='text-sm text-gray-400'>" + trade.expiry + " · DTE " + trade.dte + "</span></div>"
+                            + "<div class='grid grid-cols-2 md:grid-cols-4 gap-3 mt-3 text-xs'>"
+                            + "<div><div class='text-gray-500 uppercase'>Entry premium</div>"
+                            + "<div class='font-mono text-lg text-white'>" + Number(trade.ltp).toFixed(1) + "</div></div>"
+                            + "<div><div class='text-gray-500 uppercase'>IV</div>"
+                            + "<div class='font-mono text-lg text-white'>"
+                            + (trade.iv === null || trade.iv === undefined ? "N/A"
+                                : (trade.iv * 100).toFixed(1) + "%") + "</div></div>"
+                            + "<div><div class='text-gray-500 uppercase'>Option R:R</div>"
+                            + "<div class='font-mono text-lg " + rrTone + "'>1 : " + trade.rr.toFixed(2) + "</div></div>"
+                            + "<div><div class='text-gray-500 uppercase'>Delta</div>"
+                            + "<div class='font-mono text-lg text-white'>"
+                            + (g.delta === null || g.delta === undefined ? "N/A" : g.delta.toFixed(3)) + "</div></div>"
+                            + "</div>"
+                            + "<div class='grid grid-cols-3 gap-3 mt-2 text-xs'>"
+                            + "<div><div class='text-gray-500 uppercase'>Theta / day</div><div class='font-mono text-white'>"
+                            + (g.theta === null || g.theta === undefined ? "N/A" : g.theta.toFixed(2)) + "</div></div>"
+                            + "<div><div class='text-gray-500 uppercase'>Gamma</div><div class='font-mono text-white'>"
+                            + (g.gamma === null || g.gamma === undefined ? "N/A" : g.gamma.toFixed(5)) + "</div></div>"
+                            + "<div><div class='text-gray-500 uppercase'>Vega</div><div class='font-mono text-white'>"
+                            + (g.vega === null || g.vega === undefined ? "N/A" : g.vega.toFixed(2)) + "</div></div>"
+                            + "</div>"
+                            + (trade.rr < 1.0
+                                ? "<div class='mt-3 rounded px-3 py-2 text-xs font-bold uppercase tracking-wider border border-yellow-700 bg-yellow-900/40 text-yellow-300'>&#9888; UNFAVOURABLE OPTION RISK / REWARD</div>"
+                                : "")
+                            + "<div class='text-[11px] text-gray-500 mt-2'>Premium path: "
+                            + Number(trade.ltp).toFixed(1) + " → " + Number(trade.option_at_target).toFixed(1)
+                            + " at target (reward " + Number(trade.option_reward).toFixed(1) + ") / "
+                            + Number(trade.option_at_stop).toFixed(1) + " at stop (risk "
+                            + Number(trade.option_risk).toFixed(1) + "). Computed in option points.</div>";
+
+                        const notes = (trade.notes || []);
+                        // The rate is a single-point PROXY (Indian 10Y G-Sec), not a
+                        // maturity-matched curve. It is labelled as such so a reader
+                        // does not mistake 7.17% for a 6-day discount rate.
+                        const assumptions = [
+                            describeRiskFreeRate(payload),
+                            "Black-Scholes European, 365-day year",
+                            "Greeks are computed here; the feed supplies none",
+                        ];
+                        if (trade.model_vs_ltp_gap_pct !== null && trade.model_vs_ltp_gap_pct !== undefined) {
+                            assumptions.push("model vs LTP gap " + trade.model_vs_ltp_gap_pct.toFixed(1)
+                                + "% (scenario prices re-based to the traded premium)");
+                        }
+                        if (notes.length) assumptions.push("notes: " + notes.join("; "));
+                        asmEl.textContent = "Assumptions — " + assumptions.join(" · ");
+                    }
+
+                    let instSummary = `
                     <div class="grid grid-cols-2 gap-4 mt-2">
                         <div class="bg-blue-100 p-3 rounded text-sm text-blue-900 border border-blue-200">
                             <strong>Analogue Sample</strong><br>

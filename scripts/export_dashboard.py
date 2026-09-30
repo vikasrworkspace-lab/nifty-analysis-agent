@@ -1,6 +1,7 @@
 import json
 import os
 import sys
+import itertools
 from pathlib import Path
 
 import pandas as pd
@@ -27,28 +28,43 @@ except ImportError:
 
 def build_wfo_meta(best_final_edge, best_final_stats, oos_edge, oos_win_rate,
                    oos_trades, stability, val_window, oos_window,
-                   ui_boxes=None):
-    """Build the BTST ``_meta`` block for the daily WFO.
+                   ui_boxes=None, symbol=None, val_period=None,
+                   oos_period=None, oos_predictions=None):
+    """Build the BTST ``_meta`` block for one symbol's walk-forward.
 
     Kept as a pure function so the "SIGNAL" / "NO SIGNAL" contract can be unit
-    tested without running the full walk-forward pass (which takes ~90s and
-    needs network-backed data).
+    tested without running the full walk-forward pass (which is minutes of
+    feature work per instrument).
 
     Contract:
       * SIGNAL is only ever emitted when the OOS edge is strictly positive and
         at least one feature was selected. Never force it.
       * NO SIGNAL is a legitimate, fully-populated result: it reports the same
-        edge/trade figures as SIGNAL plus a human-readable ``reason`` naming
-        the gate that failed, and an empty feature list. The UI relies on this
-        to explain itself instead of rendering silent blanks.
+        edge/trade fields as SIGNAL plus a human-readable ``reason`` naming the
+        gate that failed, and an empty feature list. The UI relies on this to
+        explain itself instead of rendering silent blanks.
       * ``wfo_candidate_features`` carries the combination the optimizer
         actually selected, so the UI can compute a forecast from it even when
         the OOS gate rejected it. It is NOT a validated feature set: it must
         never be promoted into ``wfo_optimal_features`` and must never be used
         to qualify a trade. An empty list means no combination cleared the
         5-trade floor, which is distinct from the field being absent.
+      * ``oos_predictions`` holds one record per out-of-sample observation
+        (see ``run_wfo``). It is what lets the Historical view answer "what did
+        the model predict on this date?". It is deliberately SEPARATE from
+        ``status``: the status is a property of the whole evaluation and must
+        never be presented as an individual day's verdict. A date absent from
+        this list has no per-date OOS prediction, and the UI must say so rather
+        than substituting the global status.
+      * INSUFFICIENT_DATA is produced by ``build_insufficient_meta`` instead,
+        for instruments with too little clean history to test.
     """
+    # val_* comes from the validation window (used for feature selection);
+    # oos_* comes from the strictly-later out-of-sample window. The two are
+    # disjoint by construction (see wfo_window_bounds), so the UI can present
+    # them as a genuine validation -> OOS generalisation check.
     common = {
+        "symbol": symbol,
         "val_edge": round(float(best_final_edge), 4) if best_final_edge != -999 else 0,
         "val_win_rate": round(float(best_final_stats[1] * 100), 1) if best_final_stats else 0,
         "val_trades": int(best_final_stats[0]) if best_final_stats else 0,
@@ -58,6 +74,9 @@ def build_wfo_meta(best_final_edge, best_final_stats, oos_edge, oos_win_rate,
         "stability": stability,
         "val_window": val_window,
         "oos_window": oos_window,
+        "val_period": val_period,
+        "oos_period": oos_period,
+        "oos_predictions": list(oos_predictions) if oos_predictions else [],
     }
 
     if best_final_edge > 0 and oos_edge > 0 and ui_boxes:
@@ -82,8 +101,634 @@ def build_wfo_meta(best_final_edge, best_final_stats, oos_edge, oos_win_rate,
     meta["reason"] = reason
     return meta
 
+    if best_final_stats is None:
+        reason = "no feature combination cleared the 5-trade floor"
+    elif best_final_edge <= 0:
+        reason = "validation edge <= 0"
+    else:
+        reason = "OOS edge <= 0"
 
-def process_symbol(symbol_name, cache_key, yf_symbol):
+    meta = dict(common)
+    meta["wfo_optimal_features"] = []
+    meta["wfo_candidate_features"] = list(ui_boxes) if ui_boxes else []
+    meta["status"] = "NO SIGNAL"
+    meta["reason"] = reason
+    return meta
+
+
+def wfo_window_bounds(n_days, val_window, oos_window):
+    """Half-open index bounds for the BTST walk-forward pass.
+
+    Returns ``(val_start, val_end, oos_start, oos_end)`` where each range is
+    ``[start, end)``. The validation window used for feature selection is
+    strictly earlier than, and disjoint from, the out-of-sample window, so the
+    selected combination is never scored on the data it is evaluated on. With
+    the configured 252/126 split the two windows sit back to back:
+    ``val_end == oos_start``.
+
+    Kept as a pure function so the "selection never sees OOS" property is unit
+    tested without running the ~90s network-backed walk-forward.
+    """
+    oos_start = n_days - oos_window - 1
+    oos_end = n_days - 1
+    val_start = oos_start - val_window
+    val_end = oos_start
+    return val_start, val_end, oos_start, oos_end
+
+
+# --- Shared walk-forward methodology ---------------------------------------
+# These are METHOD parameters, identical for every symbol. Each instrument is
+# validated independently over its own history and selects its own features;
+# nothing is inherited from NIFTY.
+
+WFO_FEATURES = ['z_rsi', 'z_stochrsi', 'z_ema_diff', 'z_price_ema', 'z_vol']
+# z_atr is intentionally excluded: no BTST checkbox and no calculateTopK branch,
+# so it could only be selected and then misreported in the UI.
+
+WFO_FEATURE_UI = {
+    'z_rsi': 'chk-rsi',
+    'z_stochrsi': 'chk-stochrsi',
+    'z_ema_diff': 'chk-ema59',
+    'z_price_ema': 'chk-ema20',
+    'z_vol': 'chk-deltaoi',
+    'z_vix': 'chk-vix',
+    'z_bn_rel': 'chk-divergence',
+}
+
+WFO_VAL_WINDOW = 252
+WFO_OOS_WINDOW = 126
+WFO_EMBARGO = 5          # days excluded from the analogue search per step
+WFO_K = 50               # analogues per prediction
+WFO_LONG_BAND = 55       # prob_up >= this -> long
+WFO_SHORT_BAND = 45      # prob_up <= this -> short
+WFO_MIN_TRADES = 5       # below this a window is treated as unvalidated
+WFO_MIN_FEATURES = 2
+WFO_MAX_FEATURES = 5
+
+# 0.01 PERCENTAGE POINTS per feature. All edge arithmetic below runs in
+# percent, which is the unit the original "0.01% per feature" comment intended
+# and the unit the intraday walk-forward already uses (export_intraday.py
+# computes Forward_Return * 100).
+#
+# The pre-correction daily code fed Close.pct_change() FRACTIONS into this same
+# 0.01, so the penalty was effectively 1 percentage point per feature -- about
+# 100x its stated size. That suppressed edge estimates near zero and biased
+# selection toward the smallest (2-feature) combinations. It is a selection-side
+# error only: the OOS edge definition itself is unchanged, and the
+# `OOS edge <= 0 -> NO SIGNAL` gate is untouched.
+WFO_COMPLEXITY_PENALTY = 0.01
+
+
+def _wfo_direction(prob_up):
+    """Map a prob_up percentage onto a trade direction."""
+    if prob_up is None:
+        return "NO_PREDICTION"
+    if prob_up >= WFO_LONG_BAND:
+        return "LONG"
+    if prob_up <= WFO_SHORT_BAND:
+        return "SHORT"
+    return "FLAT"
+
+
+def run_wfo(df, symbol, features=None, val_window=WFO_VAL_WINDOW,
+            oos_window=WFO_OOS_WINDOW, embargo=WFO_EMBARGO, k=WFO_K,
+            min_trades=WFO_MIN_TRADES,
+            complexity_penalty=WFO_COMPLEXITY_PENALTY,
+            return_scale=100.0, verbose=True):
+    """Independent walk-forward validation for one instrument.
+
+    Returns ``(meta, diagnostics)``. ``meta`` is the ``_meta`` block for the
+    symbol's dashboard file; ``diagnostics`` carries the unrounded figures and
+    period bounds for offline inspection.
+
+    Methodology (unchanged from the original walk-forward, except for the
+    complexity-penalty unit fix):
+
+      * One prediction per evaluation day: the 50 nearest prior days on the
+        candidate feature subset, measured with a 5-day embargo so the match set
+        can never contain the target day or its immediate future. ``prob_up`` is
+        the share of those analogues whose NEXT day closed up.
+      * Selection: for each OOS day, every 2-5 feature combination is scored on
+        the trailing ``val_window`` days and the best is frozen BEFORE that day's
+        OOS observation is scored. The OOS day never influences its own
+        selection.
+      * The final feature set for the *live* forecast is chosen on the
+        ``val_window`` days immediately preceding the OOS window -- disjoint from
+        it, so the reported validation metrics are not OOS metrics in disguise.
+      * Aggregation: edge = sum(signed next-day returns over trades) x win rate.
+        Validation edge carries the complexity penalty; OOS edge is raw.
+
+    ``return_scale`` converts the fraction returns into percent. The gate is
+    sign-based and therefore scale-invariant, but the penalty is an absolute
+    subtraction, so the scale must match the penalty's unit.
+    """
+    features = list(features or WFO_FEATURES)
+    available = [f for f in features if f in df.columns]
+    missing = [f for f in features if f not in df.columns]
+
+    if missing:
+        if verbose:
+            print(f"  WFO [{symbol}]: missing features {missing}; skipping.")
+        return build_insufficient_meta(
+            symbol,
+            f"instruments lacks required feature(s): {', '.join(missing)}",
+        ), {"symbol": symbol, "ok": False, "reason": "missing_features"}
+
+    # dropna on the feature columns only; the frame must keep 'Return', which
+    # is the next-day outcome the walk-forward scores against.
+    df_wfo = df.dropna(subset=available)
+    n_days = len(df_wfo)
+    eval_window = val_window + oos_window
+
+    if n_days <= eval_window:
+        if verbose:
+            print(f"  WFO [{symbol}]: not enough history "
+                  f"({n_days} rows, need > {eval_window}).")
+        return build_insufficient_meta(
+            symbol,
+            f"only {n_days} clean rows of history; "
+            f"needs more than {eval_window} for a "
+            f"{val_window}-day validation + {oos_window}-day OOS split",
+        ), {"symbol": symbol, "ok": False, "reason": "insufficient_history",
+            "n_days": n_days}
+
+    feature_matrix = df_wfo[available].values
+    returns_wfo = df_wfo['Return'].values * return_scale
+    dates = df_wfo.index
+
+    if verbose:
+        print(f"WFO [{symbol}]: {n_days} clean rows, "
+              f"val={val_window} oos={oos_window} (features={len(available)})")
+
+    combos = []
+    for r in range(WFO_MIN_FEATURES, min(WFO_MAX_FEATURES, len(available)) + 1):
+        combos.extend(itertools.combinations(range(len(available)), r))
+
+    # predictions[c_idx][i] = (prob_up, expected_return, actual_next_return)
+    # Precomputed over the whole eval window so no rolling step hits a gap.
+    predictions = {c_idx: {} for c_idx in range(len(combos))}
+    for c_idx, comb in enumerate(combos):
+        mat = feature_matrix[:, comb]
+        for i in range(n_days - eval_window - 1, n_days - 1):
+            search_mat = mat[:i - embargo]
+            if len(search_mat) < k:
+                continue
+            diffs = search_mat - mat[i]
+            dists = np.sum(diffs ** 2, axis=1)
+            top_n = min(k, len(dists))
+            top_idx = np.argpartition(dists, top_n)[:top_n]
+            next_rets = returns_wfo[top_idx + 1]
+            prob_up = (np.sum(next_rets > 0) / top_n) * 100
+            expected_ret = float(np.mean(next_rets))
+            actual_next_ret = float(returns_wfo[i + 1])
+            predictions[c_idx][i] = (prob_up, expected_ret, actual_next_ret)
+
+    def calc_edge(c_idx, start_i, end_i):
+        win_count, total_trades, cumulative_ret = 0, 0, 0.0
+        for i in range(start_i, end_i):
+            rec = predictions[c_idx].get(i)
+            if rec is None:
+                continue
+            prob_up, _, actual_ret = rec
+            if prob_up >= WFO_LONG_BAND:
+                total_trades += 1
+                if actual_ret > 0:
+                    win_count += 1
+                cumulative_ret += actual_ret
+            elif prob_up <= WFO_SHORT_BAND:
+                total_trades += 1
+                if actual_ret < 0:
+                    win_count += 1
+                cumulative_ret -= actual_ret
+        if total_trades < min_trades:
+            return -999.0, 0, 0.0, 0.0
+        win_rate = win_count / total_trades
+        avg_ret = cumulative_ret / total_trades
+        edge = cumulative_ret * win_rate
+        adj_edge = edge - (len(combos[c_idx]) * complexity_penalty)
+        return adj_edge, total_trades, win_rate, avg_ret
+
+    val_sel_start, val_sel_end, oos_start, oos_end = wfo_window_bounds(
+        n_days, val_window, oos_window
+    )
+
+    # --- Rolling OOS: freeze a config per day, then score that day -----------
+    oos_trades, oos_wins, oos_cum_ret = 0, 0, 0.0
+    selected_combs_freq = {c_idx: 0 for c_idx in range(len(combos))}
+    oos_predictions = []
+
+    for today_i in range(oos_start, oos_end):
+        val_start = today_i - val_window
+        val_end = today_i
+
+        best_val_edge, best_c_idx = -999.0, None
+        for c_idx in range(len(combos)):
+            adj_edge, _, _, _ = calc_edge(c_idx, val_start, val_end)
+            if adj_edge > best_val_edge:
+                best_val_edge = adj_edge
+                best_c_idx = c_idx
+
+        date_str = pd.Timestamp(dates[today_i]).strftime('%Y-%m-%d')
+        actual_ret = float(returns_wfo[today_i + 1])
+
+        if best_c_idx is None or best_val_edge <= 0:
+            # No combination cleared the validation gate, so the model held no
+            # position. Recorded explicitly rather than dropped, so a per-date
+            # lookup can distinguish "no position" from "not evaluated".
+            oos_predictions.append({
+                "date": date_str,
+                "direction": "NO_MODEL",
+                "prob_up": None,
+                "expected_return": None,
+                "actual_return": round(actual_ret, 4),
+                "correct": None,
+                "features": [],
+                "designation": "OOS",
+                "note": "no feature combination cleared the validation gate",
+            })
+            continue
+
+        selected_combs_freq[best_c_idx] += 1
+        rec = predictions[best_c_idx].get(today_i)
+        if rec is None:
+            # Too little prior history to build a match set for this day. Left
+            # absent on purpose: the UI reports "no per-date OOS prediction".
+            continue
+
+        prob_up, expected_ret, actual_ret = rec
+        direction = _wfo_direction(prob_up)
+        correct = None
+        if direction == "LONG":
+            oos_trades += 1
+            correct = actual_ret > 0
+            if correct:
+                oos_wins += 1
+            oos_cum_ret += actual_ret
+        elif direction == "SHORT":
+            oos_trades += 1
+            correct = actual_ret < 0
+            if correct:
+                oos_wins += 1
+            oos_cum_ret -= actual_ret
+
+        oos_predictions.append({
+            "date": date_str,
+            "direction": direction,
+            "prob_up": round(float(prob_up), 2),
+            "expected_return": round(float(expected_ret), 4),
+            "actual_return": round(float(actual_ret), 4),
+            "correct": correct,
+            "features": [available[idx] for idx in combos[best_c_idx]],
+            "designation": "OOS",
+        })
+
+    oos_win_rate = (oos_wins / oos_trades) if oos_trades > 0 else 0.0
+    oos_avg_ret = (oos_cum_ret / oos_trades) if oos_trades > 0 else 0.0
+    oos_edge = oos_cum_ret * oos_win_rate
+
+    # --- Final config for the live forecast, chosen on the pre-OOS window ---
+    best_final_edge, best_final_c_idx, best_final_stats = -999.0, None, None
+    for c_idx in range(len(combos)):
+        adj_edge, t, wr, ar = calc_edge(c_idx, val_sel_start, val_sel_end)
+        if adj_edge > best_final_edge:
+            best_final_edge = adj_edge
+            best_final_c_idx = c_idx
+            best_final_stats = (t, wr, ar)
+
+    # Feature stability: share of OOS steps in which a feature was selected.
+    # Denominator is the number of steps that actually took a model, not the
+    # window length, so a run of NO_MODEL days cannot deflate every feature.
+    stability = {}
+    feature_freq = {f: 0 for f in available}
+    n_selected_steps = sum(selected_combs_freq.values())
+    for c_idx, count in selected_combs_freq.items():
+        if count > 0:
+            for f_idx in combos[c_idx]:
+                feature_freq[available[f_idx]] += count
+    if n_selected_steps > 0:
+        for f, freq in feature_freq.items():
+            # Only mapped features. An unmapped name (e.g. "z_atr") would reach
+            # the UI as though it were a selected checkbox id.
+            if f in WFO_FEATURE_UI:
+                stability[WFO_FEATURE_UI[f]] = round(
+                    (freq / n_selected_steps) * 100, 1
+                )
+
+    ui_boxes = None
+    if best_final_c_idx is not None:
+        best_comb = [available[idx] for idx in combos[best_final_c_idx]]
+        ui_boxes = [WFO_FEATURE_UI[f] for f in best_comb if f in WFO_FEATURE_UI]
+
+    val_period = {
+        "start": pd.Timestamp(dates[val_sel_start]).strftime('%Y-%m-%d'),
+        "end": pd.Timestamp(dates[val_sel_end - 1]).strftime('%Y-%m-%d'),
+    }
+    oos_period = {
+        "start": pd.Timestamp(dates[oos_start]).strftime('%Y-%m-%d'),
+        "end": pd.Timestamp(dates[oos_end - 1]).strftime('%Y-%m-%d'),
+    }
+
+    meta = build_wfo_meta(
+        best_final_edge=best_final_edge,
+        best_final_stats=best_final_stats,
+        oos_edge=oos_edge,
+        oos_win_rate=oos_win_rate,
+        oos_trades=oos_trades,
+        stability=stability,
+        val_window=val_window,
+        oos_window=oos_window,
+        ui_boxes=ui_boxes,
+        symbol=symbol,
+        val_period=val_period,
+        oos_period=oos_period,
+        oos_predictions=oos_predictions,
+    )
+
+    diagnostics = {
+        "symbol": symbol,
+        "ok": True,
+        "n_days": n_days,
+        "features_evaluated": available,
+        "combinations": len(combos),
+        "val_period": val_period,
+        "oos_period": oos_period,
+        "val_edge_raw": (round(best_final_edge + len(combos[best_final_c_idx]) * complexity_penalty, 6)
+                         if best_final_c_idx is not None else None),
+        "val_edge_penalised": round(float(best_final_edge), 6),
+        "val_trades": best_final_stats[0] if best_final_stats else 0,
+        "val_win_rate": round(best_final_stats[1], 6) if best_final_stats else None,
+        "val_avg_return": round(best_final_stats[2], 6) if best_final_stats else None,
+        "oos_edge": round(float(oos_edge), 6),
+        "oos_trades": oos_trades,
+        "oos_win_rate": round(oos_win_rate, 6),
+        "oos_avg_return": round(oos_avg_ret, 6),
+        "oos_cumulative_return": round(float(oos_cum_ret), 6),
+        "oos_records": len(oos_predictions),
+        "oos_no_model_days": sum(1 for p in oos_predictions
+                                 if p["direction"] == "NO_MODEL"),
+        "selected_features": [available[idx] for idx in combos[best_final_c_idx]]
+        if best_final_c_idx is not None else [],
+        "complexity_penalty_per_feature": complexity_penalty,
+        "return_scale": return_scale,
+    }
+
+    if verbose:
+        print(f"  WFO [{symbol}]: {meta['status']} ({meta['reason']}) | "
+              f"val_edge={meta['val_edge']} oos_edge={meta['oos_edge']} "
+              f"oos_trades={meta['oos_trades']} oos_win={meta['oos_win_rate']}%")
+    return meta, diagnostics
+
+
+def build_insufficient_meta(symbol, reason):
+    """A symbol-level ``_meta`` that refuses to imply validation it lacks.
+
+    Emitted instead of a fabricated walk-forward result when an instrument has
+    too little clean history, or lacks a feature the methodology requires. The
+    UI must treat this as UNVALIDATED: no edge figures, no features, and the
+    trade gate closed, because nothing was actually tested.
+    """
+    return {
+        "symbol": symbol,
+        "val_edge": 0,
+        "val_win_rate": 0,
+        "val_trades": 0,
+        "oos_edge": 0,
+        "oos_win_rate": 0,
+        "oos_trades": 0,
+        "stability": {},
+        "val_window": WFO_VAL_WINDOW,
+        "oos_window": WFO_OOS_WINDOW,
+        "val_period": None,
+        "oos_period": None,
+        "oos_predictions": [],
+        "wfo_optimal_features": [],
+        "wfo_candidate_features": [],
+        "status": "INSUFFICIENT_DATA",
+        "reason": reason,
+    }
+
+
+def fetch_jugaad_backfill(spec, from_date, to_date):
+    """Recent-date OHLC for one instrument from NSE via jugaad-data.
+
+    ``spec`` is ``(kind, symbol)`` with kind in {"index", "stock"}, or None to
+    skip the backfill for that instrument entirely. Returns a tz-naive
+    Open/High/Low/Close frame indexed by date, or None on any failure.
+
+    Every failure path returns None rather than raising, so a wrong symbol
+    name or an NSE outage degrades to "no backfill" instead of aborting the
+    export part-way through and leaving a half-written dashboard file.
+    """
+    if not spec:
+        return None
+    kind, symbol = spec
+    try:
+        if kind == "stock":
+            from jugaad_data.nse import stock_df as _fetch
+        else:
+            from jugaad_data.nse import index_df as _fetch
+        ns = _fetch(symbol=symbol, from_date=from_date, to_date=to_date)
+    except Exception as exc:
+        print(f"[jugaad] {kind} fetch failed for {symbol}: {exc}")
+        return None
+
+    if ns is None or getattr(ns, "empty", True):
+        return None
+
+    # index_df() dates the session under HistoricalDate; stock_df() under DATE.
+    date_col = "HistoricalDate" if "HistoricalDate" in ns.columns else "DATE"
+    if date_col not in ns.columns:
+        print(f"[jugaad] {symbol}: no date column, skipping backfill")
+        return None
+
+    out = pd.DataFrame(index=pd.DatetimeIndex(pd.to_datetime(ns[date_col].to_numpy())))
+    for src, dst in (("OPEN", "Open"), ("HIGH", "High"), ("LOW", "Low"), ("CLOSE", "Close")):
+        if src not in ns.columns:
+            print(f"[jugaad] {symbol}: missing {src}, skipping backfill")
+            return None
+        # .to_numpy() is required: assigning a Series would align it against
+        # out's DatetimeIndex by label while ns still carries a RangeIndex, so
+        # every value would land as NaN and the concat would append an all-NaN
+        # session instead of real OHLC.
+        out[dst] = pd.to_numeric(ns[src], errors="coerce").to_numpy()
+    out.index.name = None
+    out = out.dropna()
+    # jugaad's stock_df() returns a handful of Sunday-stamped rows that are not
+    # NSE sessions. Appending them invents non-trading days in the history, so
+    # keep weekdays only. This only ever removes rows (NSE publishes no
+    # Saturday/Sunday index sessions), and it leaves the master-DB path -- whose
+    # own stray weekend rows are pre-existing and out of scope here -- untouched.
+    out = out[out.index.dayofweek < 5]
+    if out.empty:
+        print(f"[jugaad] {symbol}: no usable rows, skipping backfill")
+        return None
+    if out.index.tz is not None:
+        out.index = out.index.tz_convert(None)
+    return out.sort_index()
+
+
+def _fetch_option_chain(chain_spec):
+    """Option chain for one instrument, or None if unavailable.
+
+    ``chain_spec`` is (kind, symbol) with kind in {"index", "stock"}. Previously
+    this was hardcoded to the NIFTY index chain and run for every instrument, so
+    Bank Nifty was published Nifty's option strikes against a spot ~32,000
+    points away. Returns None rather than raising so a failed fetch degrades to
+    "no options data" (the card then shows N/A) instead of falling back to
+    another instrument's levels.
+    """
+    if not chain_spec:
+        return None
+    kind, symbol = chain_spec
+    from jugaad_data.nse import NSELive
+    n = NSELive()
+    if kind == "stock":
+        return n.equities_option_chain(symbol)
+    return n.index_option_chain(symbol)
+
+
+def _strike_spacing(pe_data, ce_data):
+    """Median gap between consecutive strikes, or None if undeterminable.
+
+    The 300/1000-point windows this exporter used to hardcode are Nifty's
+    scale. Bank Nifty lists strikes 500 apart around 55,000, so a +/-300 window
+    contains no strikes at all and support/resistance silently come back None.
+    Deriving the window from the chain's own strike spacing keeps Nifty on
+    exactly 300/1000 (50-point strikes -> 6x and 20x) while scaling to whatever
+    the instrument actually trades.
+    """
+    strikes = sorted({x['strikePrice'] for x in pe_data + ce_data if x.get('strikePrice') is not None})
+    if len(strikes) < 2:
+        return None
+    gaps = [b - a for a, b in zip(strikes, strikes[1:]) if b > a]
+    if not gaps:
+        return None
+    return sorted(gaps)[len(gaps) // 2]
+
+
+def _strike_bands(pe_data, ce_data):
+    """(support, max_pain, momentum) strike windows for this chain, or None.
+
+    Each is a multiple of the chain's own strike spacing, so NIFTY (50-pt
+    strikes) resolves to exactly the 300 / 1000 / 500 this file used to
+    hardcode -- Nifty's output is unchanged -- while NIFTY BANK (500-pt
+    strikes) gets 3000 / 10000 / 5000 instead of windows too narrow to hold a
+    single strike, which is what silently produced empty support/resistance.
+    """
+    spacing = _strike_spacing(pe_data, ce_data)
+    if spacing is None:
+        return None
+    return 6 * spacing, 20 * spacing, 10 * spacing
+
+
+def _fetch_option_chain_for_expiry(chain_spec, expiry_iso):
+    """Option chain for ONE explicit expiry, or None.
+
+    The live endpoint returns a single expiry per call and defaults to the FIRST
+    listed expiry when none is requested. On 2026-09-30 that default was
+    29-Sep-2026, already past-dated, and its IV column was a perfectly linear
+    ramp (1.02, 2.54, 3.96 ...) rather than a market smile. Every expiry is
+    therefore requested explicitly, and past-dated ones are filtered upstream by
+    core.options_chain.select_expiries.
+    """
+    if not chain_spec:
+        return None
+    kind, symbol = chain_spec
+    from jugaad_data.nse import NSELive
+    n = NSELive()
+    try:
+        if kind == "stock":
+            return n.equities_option_chain(symbol, expiry=expiry_iso)
+        return n.index_option_chain(symbol, expiry=expiry_iso)
+    except Exception as exc:
+        print(f"[options] chain fetch failed for {expiry_iso}: {exc}")
+        return None
+
+
+def build_slim_option_payload(chain_spec, settings, today=None):
+    """Fetch and slim the front + next-monthly chains into a bounded payload.
+
+    Returns the ``_options`` block or None. This never raises: a failed fetch
+    degrades to "no option data" so the UI shows N/A rather than substituting
+    another instrument's levels.
+    """
+    from core import options_chain as oc
+    from core.option_pricing import resolve_risk_free_rate
+
+    opts = settings.get("options", {}) if settings else {}
+    strike_span = opts.get("expiry_strike_span", 3)
+    min_dte = opts.get("min_dte", 1)
+    min_iv = opts.get("min_iv", 0.01)
+    # Resolution (including the documented Indian 10Y G-Sec proxy value and its
+    # provenance) happens once, here, and is carried into the payload verbatim so
+    # the UI labels the rate the exporter actually priced with.
+    rate_info = resolve_risk_free_rate(opts)
+
+    try:
+        probe = _fetch_option_chain(chain_spec)
+    except Exception as exc:
+        print(f"[options] chain probe failed: {exc}")
+        return None
+    if probe is None:
+        return None
+    records = probe.get("records") or {}
+    spot = records.get("underlyingValue")
+    expiry_labels = records.get("expiryDates")
+    if not spot or not expiry_labels:
+        return None
+
+    today = today or datetime.now().date()
+    front, monthly = oc.select_expiries(expiry_labels, today, min_dte=min_dte)
+    wanted = [e for e in (front, monthly) if e]
+    if not wanted:
+        print("[options] no non-expired expiry available; skipping option payload")
+        return None
+
+    label_to_iso = {}
+    for lbl in expiry_labels:
+        d = oc.parse_expiry(lbl)
+        if d is not None:
+            label_to_iso[d.isoformat()] = lbl
+
+    by_expiry = {}
+    for iso in wanted:
+        lbl = label_to_iso.get(iso)
+        if lbl is None:
+            continue
+        chain = probe if lbl == expiry_labels[0] else _fetch_option_chain_for_expiry(chain_spec, lbl)
+        if chain is None:
+            continue
+        rows = (chain.get("records") or {}).get("data")
+        if rows:
+            by_expiry[iso] = rows
+
+    payload = oc.build_option_payload(
+        by_expiry, spot, today, strike_span=strike_span, min_iv=min_iv,
+        rate_info=rate_info,
+        monthly_expiries={monthly} if monthly else set(),
+    )
+    if payload is None:
+        print("[options] chain contained no usable near-ATM legs; skipping option payload")
+    return payload
+
+
+_EXTERNAL_CLOSE_CACHE: dict[str, pd.Series] = {}
+
+
+def _external_close(ticker: str) -> pd.Series:
+    """Last-close series for an external ticker, downloaded once per run.
+
+    ^INDIAVIX, INR=X and ^GSPC carry the same 10y window for every instrument,
+    so fetching them inside process_symbol() repeated the identical download
+    three times. A Cloud Run execution is a fresh process, so the cache cannot
+    serve stale data across runs.
+    """
+    if ticker not in _EXTERNAL_CLOSE_CACHE:
+        _EXTERNAL_CLOSE_CACHE[ticker] = yf.Ticker(ticker).history(period="10y")["Close"]
+    return _EXTERNAL_CLOSE_CACHE[ticker]
+
+
+def process_symbol(symbol_name, cache_key, yf_symbol, jugaad_spec=None, chain_spec=None):
     data_file = f"dashboard_data.json" if symbol_name == "nifty" else f"dashboard_data_{symbol_name}.json"
     data = {}
     
@@ -100,60 +745,38 @@ def process_symbol(symbol_name, cache_key, yf_symbol):
         ticker = yf.Ticker(yf_symbol)
         df = ticker.history(period="10y")
     
-    # Fetch Institutional Data (VIX & USDINR)
+    # Fetch Institutional Data (VIX & USDINR). Memoised per run so the identical
+    # ^INDIAVIX / INR=X / ^GSPC windows are downloaded once, not once per symbol.
     try:
-        vix = yf.Ticker("^INDIAVIX")
-        vix_history = vix.history(period="10y")
-        df["VIX"] = vix_history["Close"]
-        
-        usdinr = yf.Ticker("INR=X")
-        inr_history = usdinr.history(period="10y")
-        df["USDINR"] = inr_history["Close"]
-        
-        sp500 = yf.Ticker("^GSPC")
-        sp500_history = sp500.history(period="10y")
-        df["SP500"] = sp500_history["Close"]
-        
-        bank_nifty = yf.Ticker("^NSEBANK")
-        bank_history = bank_nifty.history(period="10y")
-        df["BANK_NIFTY"] = bank_history["Close"]
+        df["VIX"] = _external_close("^INDIAVIX")
+        df["USDINR"] = _external_close("INR=X")
+        df["SP500"] = _external_close("^GSPC")
+        df["BANK_NIFTY"] = _external_close("^NSEBANK")
     except Exception as e:
         print("Failed to fetch institutional data:", e)
 
     # --- NEW: Fetch missing recent dates using jugaad-data (more reliable) ---
-    try:
-        from jugaad_data.nse import index_df
-        from datetime import datetime, timedelta
-        
-        to_date = datetime.now().date()
-        from_date = to_date - timedelta(days=30)
-        # Skip jugaad_data fallback for non-nifty to keep it simple and clean
-        if symbol_name == "nifty":
-            ns = index_df(symbol="NIFTY 50", from_date=from_date, to_date=to_date)
-            
-            if not ns.empty:
-                ns['Date'] = pd.to_datetime(ns['HistoricalDate'])
-                ns = ns.set_index('Date')
-                ns.index = ns.index.tz_localize(None)
-                ns = ns.sort_index()
-                
-                ns['Open'] = pd.to_numeric(ns['OPEN'])
-                ns['High'] = pd.to_numeric(ns['HIGH'])
-                ns['Low'] = pd.to_numeric(ns['LOW'])
-                ns['Close'] = pd.to_numeric(ns['CLOSE'])
-                ns = ns[['Open', 'High', 'Low', 'Close']]
-                
-                # Find which dates from ns are missing in df. Both indexes are
-                # tz-naive here: HistoricalDate is already a plain IST date, and
-                # localizing it to Asia/Kolkata made it tz-aware, so the isin
-                # and the concat below raised "Cannot compare tz-naive and
-                # tz-aware timestamps" and the whole backfill silently died.
-                missing = ns[~ns.index.isin(df.index)]
-                if not missing.empty:
-                    df = pd.concat([df, missing]).sort_index()
-                    print(f"Appended {len(missing)} missing days from jugaad_data.")
-    except Exception as e:
-        print("Fallback jugaad_data fetch failed:", e)
+    # Now per instrument. This used to be gated on `symbol_name == "nifty"`
+    # ("keep it simple and clean"), so bank_nifty was never repaired while
+    # nifty was -- the two dashboards drifted apart on the same trading day and
+    # bank_nifty was left short of sessions the cache already had.
+    to_date = datetime.now().date()
+    from_date = to_date - timedelta(days=30)
+    # The master DB is tz-naive, but the yfinance fallback path builds a
+    # tz-aware index. isin/concat then raise "Cannot compare tz-naive and
+    # tz-aware timestamps" and kill the whole export, so normalise first.
+    if getattr(df.index, "tz", None) is not None:
+        df.index = df.index.tz_localize(None)
+    ns = fetch_jugaad_backfill(jugaad_spec, from_date, to_date)
+    if ns is not None and not ns.empty:
+        # Both indexes are tz-naive here: HistoricalDate/DATE is already a plain
+        # IST date, and localizing it to Asia/Kolkata made it tz-aware, so the
+        # isin and the concat below raised "Cannot compare tz-naive and
+        # tz-aware timestamps" and the whole backfill silently died.
+        missing = ns[~ns.index.isin(df.index)]
+        if not missing.empty:
+            df = pd.concat([df, missing]).sort_index()
+            print(f"Appended {len(missing)} missing days from jugaad_data ({jugaad_spec[1]}).")
 
 
     df["Return"] = df["Close"].pct_change()
@@ -255,12 +878,11 @@ def process_symbol(symbol_name, cache_key, yf_symbol):
     global_options_resistance = None
     global_options_max_pain = None
     global_options_momentum = None
+    slim_options_payload = None
     try:
-        from jugaad_data.nse import NSELive
-        n = NSELive()
-        oc = n.index_option_chain("NIFTY")
-
-        # Get current price
+        oc = _fetch_option_chain(chain_spec)
+        if oc is None:
+            raise ValueError("no option chain for %s" % (chain_spec,))
         current_price = oc['records']['underlyingValue']
 
         # Calculate Support and Resistance from Option Chain (Max OI)
@@ -272,22 +894,33 @@ def process_symbol(symbol_name, cache_key, yf_symbol):
             if 'CE' in item:
                 ce_data.append(item['CE'])
 
-        # Find Intraday Support (Max Put OI strictly within 300 pts below current price)
-        puts_below = [x for x in pe_data if (current_price - 300) <= x['strikePrice'] < current_price]
+        # Strike windows scale with the instrument's own strike spacing. On
+        # NIFTY (50-pt strikes) these resolve to exactly the 300 / 1000 / 500
+        # this file previously hardcoded, so Nifty's output is unchanged, while
+        # NIFTY BANK (500-pt strikes) gets 3000 / 10000 / 5000 instead of
+        # windows too narrow to contain a single strike.
+        bands = _strike_bands(pe_data, ce_data)
+        if bands is None:
+            print("[options] cannot infer strike spacing, skipping OI levels")
+            raise ValueError("option chain has no usable strike spacing")
+        support_band, pain_band, momentum_band = bands
+
+        # Find Intraday Support (Max Put OI within support_band below current price)
+        puts_below = [x for x in pe_data if (current_price - support_band) <= x['strikePrice'] < current_price]
         if puts_below:
             max_put = max(puts_below, key=lambda x: x['openInterest'])
             global_options_support = max_put['strikePrice']
 
-        # Find Intraday Resistance (Max Call OI strictly within 300 pts above current price)
-        calls_above = [x for x in ce_data if current_price < x['strikePrice'] <= (current_price + 300)]
+        # Find Intraday Resistance (Max Call OI within support_band above current price)
+        calls_above = [x for x in ce_data if current_price < x['strikePrice'] <= (current_price + support_band)]
         if calls_above:
             max_call = max(calls_above, key=lambda x: x['openInterest'])
             global_options_resistance = max_call['strikePrice']
 
         # Calculate Intraday Option Momentum (Delta OI)
-        # Sum of changeinOpenInterest for strikes within +/- 500 points
-        put_delta = sum([x.get('changeinOpenInterest', 0) for x in pe_data if abs(x['strikePrice'] - current_price) <= 500])
-        call_delta = sum([x.get('changeinOpenInterest', 0) for x in ce_data if abs(x['strikePrice'] - current_price) <= 500])
+        # Sum of changeinOpenInterest for strikes within +/- momentum_band
+        put_delta = sum([x.get('changeinOpenInterest', 0) for x in pe_data if abs(x['strikePrice'] - current_price) <= momentum_band])
+        call_delta = sum([x.get('changeinOpenInterest', 0) for x in ce_data if abs(x['strikePrice'] - current_price) <= momentum_band])
         
         global_options_momentum = None
         if call_delta > 0 or put_delta > 0:
@@ -298,7 +931,7 @@ def process_symbol(symbol_name, cache_key, yf_symbol):
 
         # Calculate Max Pain
         all_strikes = sorted(list(set([x['strikePrice'] for x in pe_data + ce_data])))
-        check_strikes = [s for s in all_strikes if current_price - 1000 <= s <= current_price + 1000]
+        check_strikes = [s for s in all_strikes if current_price - pain_band <= s <= current_price + pain_band]
         
         min_loss = float('inf')
         for expiry_price in check_strikes:
@@ -312,6 +945,22 @@ def process_symbol(symbol_name, cache_key, yf_symbol):
             if total_loss < min_loss:
                 min_loss = total_loss
                 global_options_max_pain = expiry_price
+
+        # Layer B needs actual option prices, not just OI levels. Reuses the
+        # expiry calendar already fetched above; only the second expiry costs
+        # an extra call, since one fetch returns one expiry.
+        try:
+            slim_options_payload = build_slim_option_payload(
+                chain_spec, core_settings.load_settings()
+            )
+            if slim_options_payload is not None:
+                cands = slim_options_payload["candidates"]
+                print("[options] slim payload: %d expiries (%s), %d legs"
+                      % (len(cands),
+                         ", ".join("%s DTE %s" % (c["expiry"], c["dte"]) for c in cands),
+                         sum(len(c["legs"]) for c in cands)))
+        except Exception as e:
+            print(f"[options] slim payload skipped: {e}")
     except Exception as e:
         print(f"Option Chain fetch failed: {e}")
         pass
@@ -485,168 +1134,30 @@ def process_symbol(symbol_name, cache_key, yf_symbol):
             "signals": signals
         }
         
-    if symbol_name == "nifty":
-        # Replace WFO block in export_dashboard.py
-        print("Running Phase 3B Walk-Forward Optimizer to find current best features...")
-        try:
-            import itertools
-            df_wfo = df.copy()
-            # z_atr is intentionally excluded: it has no BTST checkbox and no
-            # calculateTopK branch, so it could only ever be selected and then
-            # misreported (it was aliased to chk-stochrsi in the UI).
-            available_features = ['z_rsi', 'z_stochrsi', 'z_ema_diff', 'z_price_ema', 'z_vol']
-            df_wfo.dropna(subset=available_features, inplace=True)
+    # Walk-forward validation runs for EVERY instrument, each over its own
+    # history and selecting its own features. It used to be gated on
+    # `symbol_name == "nifty"`, so Bank Nifty and Reliance published with no
+    # `_meta` at all -- which the UI read as "no verdict" and therefore left
+    # their trade card ungated. A missing verdict is not a passing verdict.
+    print("Running walk-forward validation...")
+    try:
+        data["_meta"], _wfo_diag = run_wfo(df, symbol_name)
+    except Exception as e:
+        # Never let a walk-forward failure silently drop the block: an absent
+        # `_meta` is read downstream as "unvalidated", which is a stronger and
+        # less honest claim than "we tried and it failed".
+        print("WFO failed:", e)
+        data["_meta"] = build_insufficient_meta(
+            symbol_name, f"walk-forward failed: {e}"
+        )
             
-            feature_matrix = df_wfo[available_features].values
-            returns_wfo = df_wfo['Return'].values
-            
-            n_days = len(feature_matrix)
-            # Daily/BTST sampling is ~1 observation per trading day, so the old
-            # 30+30 split gave the optimiser ~30 points and it almost never
-            # cleared the 5-trade floor. Use 1y validation + 6m OOS instead.
-            val_window = 252
-            oos_window = 126
-            eval_window = val_window + oos_window
-            # Days of embargo excluded from the analogue search so the match set
-            # never contains the target day or its immediate future.
-            embargo = 5
-            print(f"WFO n_days after dropna: {n_days}")
-            print(f"WFO window: val={val_window} oos={oos_window} (features={len(available_features)})")
-            
-            if n_days > val_window + oos_window:
-                test_combs = []
-                for r in range(2, 6): # Min 2, max 5 features
-                    test_combs.extend(list(itertools.combinations(range(len(available_features)), r)))
-                
-                # Precompute predictions across the whole eval window so the
-                # rolling val and OOS passes never hit a missing day.
-                predictions = {c_idx: {} for c_idx in range(len(test_combs))}
-                for c_idx, comb in enumerate(test_combs):
-                    mat = feature_matrix[:, comb]
-                    for i in range(n_days - eval_window - 1, n_days - 1):
-                        target_vec = mat[i]
-                        search_mat = mat[:i-embargo]
-                        if len(search_mat) < 50: continue
-                            
-                        diffs = search_mat - target_vec
-                        dists = np.sum(diffs**2, axis=1)
-                        top_n = min(50, len(dists))
-                        top_idx = np.argpartition(dists, top_n)[:top_n]
-                            
-                        next_rets = returns_wfo[top_idx + 1]
-                        up_count = np.sum(next_rets > 0)
-                        prob_up = (up_count / top_n) * 100
-                        actual_next_ret = returns_wfo[i + 1]
-                        predictions[c_idx][i] = (prob_up, actual_next_ret)
-        
-                def calc_edge(c_idx, start_i, end_i):
-                    win_count, total_trades, cumulative_ret = 0, 0, 0
-                    for i in range(start_i, end_i):
-                        if i not in predictions[c_idx]: continue
-                        prob_up, actual_ret = predictions[c_idx][i]
-                        if prob_up >= 55:
-                            total_trades += 1
-                            if actual_ret > 0: win_count += 1
-                            cumulative_ret += actual_ret
-                        elif prob_up <= 45:
-                            total_trades += 1
-                            if actual_ret < 0: win_count += 1
-                            cumulative_ret -= actual_ret
-                            
-                    if total_trades < 5: return -999, 0, 0, 0
-                    win_rate = win_count / total_trades
-                    avg_ret = cumulative_ret / total_trades
-                    edge = cumulative_ret * win_rate
-                    # Complexity Penalty: 0.01% per feature
-                    adj_edge = edge - (len(test_combs[c_idx]) * 0.01)
-                    return adj_edge, total_trades, win_rate, avg_ret
-        
-                oos_start = n_days - oos_window - 1
-                oos_end = n_days - 1
-                
-                oos_trades, oos_wins, oos_cum_ret = 0, 0, 0
-                selected_combs_freq = {c_idx: 0 for c_idx in range(len(test_combs))}
-                
-                # Rolling OOS Loop
-                for today_i in range(oos_start, oos_end):
-                    val_start = today_i - val_window
-                    val_end = today_i
-                    
-                    best_val_edge, best_c_idx = -999, None
-                    for c_idx in range(len(test_combs)):
-                        adj_edge, _, _, _ = calc_edge(c_idx, val_start, val_end)
-                        if adj_edge > best_val_edge:
-                            best_val_edge = adj_edge
-                            best_c_idx = c_idx
-                            
-                    if best_c_idx is not None and best_val_edge > 0:
-                        selected_combs_freq[best_c_idx] += 1
-                        prob_up, actual_ret = predictions[best_c_idx].get(today_i, (50, 0))
-                        if prob_up >= 55:
-                            oos_trades += 1
-                            if actual_ret > 0: oos_wins += 1
-                            oos_cum_ret += actual_ret
-                        elif prob_up <= 45:
-                            oos_trades += 1
-                            if actual_ret < 0: oos_wins += 1
-                            oos_cum_ret -= actual_ret
-        
-                oos_win_rate = (oos_wins / oos_trades) if oos_trades > 0 else 0
-                oos_avg_ret = (oos_cum_ret / oos_trades) if oos_trades > 0 else 0
-                oos_edge = oos_avg_ret * oos_win_rate * oos_trades # Total Edge
-        
-                # Final Model Selection for Tomorrow
-                best_final_edge, best_final_c_idx, best_final_stats = -999, None, None
-                for c_idx in range(len(test_combs)):
-                    adj_edge, t, wr, ar = calc_edge(c_idx, oos_start, oos_end) # Val is the OOS period
-                    if adj_edge > best_final_edge:
-                        best_final_edge = adj_edge
-                        best_final_c_idx = c_idx
-                        best_final_stats = (t, wr, ar)
-                
-                ui_mapping = {
-                    'z_rsi': 'chk-rsi', 'z_stochrsi': 'chk-stochrsi',
-                    'z_ema_diff': 'chk-ema59', 'z_price_ema': 'chk-ema20',
-                    'z_vol': 'chk-deltaoi', 'z_vix': 'chk-vix', 'z_bn_rel': 'chk-divergence'
-                }
-                
-                stability = {}
-                feature_freq = {f: 0 for f in available_features}
-                for c_idx, count in selected_combs_freq.items():
-                    if count > 0:
-                        for f_idx in test_combs[c_idx]:
-                            feature_freq[available_features[f_idx]] += count
-                for f, freq in feature_freq.items():
-                    # Only mapped features. Previously an unmapped f leaked its
-                    # raw name (e.g. "z_atr") into _meta, which the UI then
-                    # displayed as though it were a selected checkbox id.
-                    if f in ui_mapping:
-                        stability[ui_mapping[f]] = round((freq / oos_window) * 100, 1)
-        
-                ui_boxes = None
-                if best_final_c_idx is not None:
-                    best_comb = [available_features[idx] for idx in test_combs[best_final_c_idx]]
-                    ui_boxes = [ui_mapping[f] for f in best_comb if f in ui_mapping]
+    # Layer B: the slim option snapshot. Attached at the top level rather than
+    # per-date because it describes the chain as of the export, not a series of
+    # historical states. Absent key means "no chain available" and the UI must
+    # show N/A rather than fall back to underlying levels.
+    if slim_options_payload is not None:
+        data["_options"] = slim_options_payload
 
-                data["_meta"] = build_wfo_meta(
-                    best_final_edge=best_final_edge,
-                    best_final_stats=best_final_stats,
-                    oos_edge=oos_edge,
-                    oos_win_rate=oos_win_rate,
-                    oos_trades=oos_trades,
-                    stability=stability,
-                    val_window=val_window,
-                    oos_window=oos_window,
-                    ui_boxes=ui_boxes,
-                )
-                if data["_meta"]["status"] == "SIGNAL":
-                    print(f"WFO Phase 3B Optimal Set: {ui_boxes}")
-                else:
-                    print(f"WFO Phase 3B: NO SIGNAL detected ({data['_meta']['reason']}).")
-                    
-        except Exception as e:
-            print("WFO Phase 3B Failed:", e)
-            
     with open(data_file, "w") as f:
         json.dump(data, f, indent=2)
     print(f"[{symbol_name}] Successfully updated {data_file}")
@@ -662,15 +1173,27 @@ def main():
     #
     # "reliance" is not a configured symbol (see config/settings.json
     # -> symbols), so it has no cache series and legitimately uses the fallback.
+    #
+    # The fourth element is the jugaad-data backfill spec, (kind, symbol), so the
+    # recent-date repair runs for every instrument rather than nifty alone.
+    # kind is "index" for index_df() and "stock" for stock_df().
+    #
+    # The fifth is the option-chain spec (see _option_chain_spec): without it
+    # every instrument was handed NIFTY's strikes, so Bank Nifty was published
+    # Nifty's option levels against a spot ~32k points away.
+    #
+    # Note the two APIs spell Bank Nifty differently and both spellings are
+    # required: index_df() wants "NIFTY BANK", while NSELive.index_option_chain
+    # wants "BANKNIFTY" and returns an empty payload for "NIFTY BANK".
     instruments = [
-        ("nifty", "nifty", "^NSEI"),
-        ("banknifty", "bank_nifty", "^NSEBANK"),
-        ("reliance", "reliance", "RELIANCE.NS")
+        ("nifty", "nifty", "^NSEI", ("index", "NIFTY 50"), ("index", "NIFTY")),
+        ("banknifty", "bank_nifty", "^NSEBANK", ("index", "NIFTY BANK"), ("index", "BANKNIFTY")),
+        ("reliance", "reliance", "RELIANCE.NS", ("stock", "RELIANCE"), ("stock", "RELIANCE")),
     ]
 
-    for sym, cache_key, yf_symbol in instruments:
+    for sym, cache_key, yf_symbol, jugaad_spec, chain_spec in instruments:
         print(f"\n--- Processing {sym.upper()} ---")
-        process_symbol(sym, cache_key, yf_symbol)
+        process_symbol(sym, cache_key, yf_symbol, jugaad_spec, chain_spec)
 
 if __name__ == "__main__":
     main()

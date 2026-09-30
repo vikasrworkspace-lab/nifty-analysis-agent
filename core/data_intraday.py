@@ -66,10 +66,14 @@ def update_from_yfinance(name: str, symbol: str, settings: dict, days: int = Non
     fresh = _finalize(raw, settings)
     if fresh.empty:
         print(f"[intraday] no recent bars for {symbol}")
-        return load_bars("nifty", 5, settings)
+        return load_bars(name, 5, settings)
 
     fresh.index.name = "ts"
-    existing = load_bars("nifty", 5, settings)
+    # Must be the *named* archive, not nifty's. Reading "nifty" here made this
+    # collector rebuild bank_nifty.csv as Nifty's whole history with the fetched
+    # window laid over the tail, so every bar outside the fetch window was
+    # Nifty's price. update_from_fyers below already passed `name` correctly.
+    existing = load_bars(name, 5, settings)
     combined = pd.concat([existing.reset_index(), fresh.reset_index()]).drop_duplicates(subset=["ts"], keep="last")
     combined = combined.set_index("ts").sort_index()
     _save_bars(combined, name, settings, 5)
@@ -110,17 +114,18 @@ def update_from_fyers(name: str, symbol: str, settings: dict, days: int = 5):
     from dotenv import load_dotenv
     from fyers_apiv3 import fyersModel
 
+    from core.fyers_auth import resolve_access_token, token_file_path
+
     load_dotenv()
     client_id = os.getenv("FYERS_APP_ID")
-    
-    token_file = ".fyers_token"
-    if not os.path.exists(token_file):
-        print("[fyers] No access token found. Run fyers_login.py first.")
+
+    try:
+        access_token = resolve_access_token()
+    except FileNotFoundError:
+        print(f"[fyers] No access token found. Set FYERS_ACCESS_TOKEN or run "
+              f"fyers_login.py to create {token_file_path()}.")
         return None
-        
-    with open(token_file, "r") as f:
-        access_token = f.read().strip()
-        
+
     fyers = fyersModel.FyersModel(client_id=client_id, is_async=False, token=access_token, log_path="")
     
     end_date = datetime.now()

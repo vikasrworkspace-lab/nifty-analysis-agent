@@ -158,6 +158,21 @@ class TestTradeEngineGating:
         assert "meta.oos_trades" in body
         assert "meta.oos_win_rate" in body
 
+    def test_insufficient_data_is_labelled_not_silently_unqualified(self):
+        # A symbol the walk-forward could not test must say so. Without an
+        # explicit branch it falls through to the SIGNAL path and renders a
+        # blank panel, which reads as "no data" rather than "never validated".
+        body = re.sub(r"//[^\n]*", "", _body("runAutoSelect"))
+        assert "INSUFFICIENT_DATA" in body
+        assert "UNVALIDATED" in body
+
+    def test_insufficient_data_never_qualifies_a_trade(self):
+        body = re.sub(r"//[^\n]*", "", _body("isTradeQualified"))
+        # Only an explicit SIGNAL qualifies. INSUFFICIENT_DATA falls through
+        # to False, which is the honest outcome: nothing was validated.
+        assert 'meta.status === "SIGNAL"' in body
+        assert "INSUFFICIENT_DATA" not in body
+
     def test_hidden_fields_are_the_actionable_ones(self):
         # Entry / Stop / Targets / R:R must live inside a gated wrapper.
         for field in ("te-entry", "te-stop", "te-t1", "te-t2", "te-rr"):
@@ -168,6 +183,67 @@ class TestTradeEngineGating:
             assert wrapper != -1, "%s has no enclosing gated wrapper" % field
             closer = INDEX.index("</div>", idx)
             assert wrapper < idx < closer, "%s is not inside a gated wrapper" % field
+
+
+class TestPerDateVsGlobalSeparation:
+    """The symbol-level verdict must never stand in for a date's own result."""
+
+    def test_per_date_panel_exists(self):
+        assert 'id="oos-per-date"' in INDEX
+
+    def test_per_date_renderer_reads_only_the_matching_record(self):
+        body = re.sub(r"//[^\n]*", "", _body("renderPerDateOOS"))
+        # The lookup must be an exact match on the selected date.
+        assert "meta.oos_predictions.find(r => r.date === dateStr)" in body
+        # And it must not reach for the global verdict to fill the gap.
+        assert "meta.status" not in body
+        assert "meta.oos_edge" not in body
+
+    def test_missing_date_uses_the_exact_fallback_text(self):
+        body = re.sub(r"//[^\n]*", "", _body("renderPerDateOOS"))
+        assert "No per-date OOS prediction is available for this date." in body
+
+    def test_absent_record_array_is_handled(self):
+        body = re.sub(r"//[^\n]*", "", _body("renderPerDateOOS"))
+        # A legacy payload with no oos_predictions must degrade to the same
+        # honest message rather than throwing.
+        assert "Array.isArray(meta.oos_predictions)" in body
+
+    def test_per_date_panel_renders_on_every_prediction_pass(self):
+        body = re.sub(r"//[^\n]*", "", _body("renderPrediction"))
+        assert "renderPerDateOOS(dateStr)" in body
+        # It must be called before the top-K gate, so a date with a stored OOS
+        # record still renders it even when no analogue match is found.
+        assert body.index("renderPerDateOOS(dateStr)") < body.index("calculateTopK(dateStr)")
+
+    def test_global_badges_are_labelled_model_level(self):
+        # The Auto-Select badge is a whole-window verdict. Label it so it
+        # cannot be read as the call for the selected date.
+        assert INDEX.count("MODEL-LEVEL:") >= 3
+        for label in ("MODEL-LEVEL: WALK-FORWARD OPTIMIZED",
+                      "MODEL-LEVEL: NO RELIABLE OOS SIGNAL DETECTED",
+                      "MODEL-LEVEL: UNVALIDATED — INSUFFICIENT DATA"):
+            assert label in INDEX
+
+    def test_flat_days_are_not_scored(self):
+        # A FLAT day is not a trade, so `correct` is null and must not be
+        # rendered as a win or a loss.
+        body = re.sub(r"//[^\n]*", "", _body("renderPerDateOOS"))
+        assert "rec.direction === 'FLAT'" in body
+        assert "rec.correct ? 'Correct' : 'Incorrect'" in body
+
+    def test_no_model_days_are_not_scored(self):
+        # A NO_MODEL day is the model sitting out because no combination
+        # cleared the gate. Scoring it as a loss would understate the record,
+        # and it has no feature set -- so the panel must branch on it too.
+        body = re.sub(r"//[^\n]*", "", _body("renderPerDateOOS"))
+        assert "rec.direction === 'NO_MODEL'" in body
+        assert "isFlat || isNoModel" in body
+        # Null numeric fields must be guarded, not passed to .toFixed().
+        assert "rec.prob_up !== null" in body
+        assert "rec.expected_return !== null" in body
+        # An empty feature list must not render a dangling "Model used:".
+        assert "rec.features && rec.features.length" in body
 
 
 class TestStaleState:

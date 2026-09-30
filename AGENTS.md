@@ -30,6 +30,27 @@ historical-analogue matching. It is NOT a web app.
   Run `python scripts/update_data.py` first, and diff `_meta` plus the date-key
   set before committing. Prefer shipping exporter code alone when the cache is
   stale; the daily job regenerates the data in CI.
+- The **only** hand-edited copy of the dashboard UI is the root `index.html`.
+  `public/index.html` is a build output of `scripts/sync_public.py` -- regenerate
+  it, never edit it, and run `python scripts/sync_public.py --check` before
+  `firebase deploy`. Two hand-edited copies are what let Firebase and GitHub
+  Pages drift apart (the Firebase copy gained the GCS data origin while the root
+  copy kept fetching a bundled `dashboard_data.json`).
+- The data origin is **not** hardcoded in the page. `data-config.js` sets
+  `window.DASHBOARD_DATA_BASE_URL` to the GCS `dashboard/` prefix and `index.html`
+  resolves `${DATA_BASE_URL}/${jsonFile}`; an empty value means "relative to the
+  page", which is what a bare `file://` open should do. Do not reintroduce a
+  query-string cache-buster (`?t=`): the bucket publishes `Cache-Control:
+  no-store`, and `firebase.json` pins the shell (`/` and `data-config.js`) to
+  `no-store` so a cached shell cannot pin an old page.
+- Date selection must filter the reserved underscore-prefixed blocks by shape
+  (`!k.startsWith('_')`), not by the name `_meta`. The options-chain payload lives
+  in `_options`, and underscore sorts above digits, so any `_`-prefixed block
+  would otherwise become the default selection.
+- The bucket's CORS policy allows only the deployed Firebase origin and the
+  GitHub Pages origin. A cross-origin read from anywhere else -- including
+  `localhost:8000` -- is refused by the browser by design; do not widen it to
+  make local debugging work.
 
 ## BTST daily WFO
 
@@ -49,6 +70,45 @@ historical-analogue matching. It is NOT a web app.
   `z_ema_diff`, `z_price_ema`, `z_vol`. `z_atr` is excluded because it has no
   checkbox and no `calculateTopK` branch, so it could only be misreported.
   Never let an unmapped feature name reach `stability` in `_meta`.
+
+## Fyers auth
+
+- A Fyers access token lasts **one trading day**, so each trading day the user
+  mints one in the browser: `morning_login.bat` (or
+  `python scripts/fyers_login.py --push-secret`) before 09:00 IST. That is the
+  entire daily manual routine. It adds the token as a new `FYERS_ACCESS_TOKEN`
+  version, and the data jobs bind `latest`, so every Cloud Run job picks it up
+  on its next execution with no redeploy.
+- The script **verifies the new token against Fyers** after pushing and exits
+  non-zero if it is rejected. Do not remove that call: without it a bad token is
+  only discovered at 09:00 when data silently stops flowing, instead of in the
+  morning output.
+- `morning_login.bat` preflights the venv, `.env` and `gcloud` before invoking
+  the script, so a missing prerequisite is a readable message rather than a
+  traceback. Keep those checks when editing it.
+- **There is no scheduled token rotator.** The old design exchanged a refresh
+  token for a new access token; Fyers disabled
+  `/api/v3/validate-refresh-token` platform-wide:
+  `{"code": -16, "message": "Refresh token API is currently disabled to comply
+  with SEBI regulations."}`. SEBI's retail-algo framework mandates 2FA once per
+  trading day and forbids continuous refresh-token sessions, so refreshing could
+  never have worked regardless of implementation. Fyers also returns no
+  replacement refresh token, so it needed a ~15-day re-seed regardless.
+- `FYERS_REFRESH_TOKEN` is unused and may be deleted. `scripts/fyers_login.py`
+  no longer seeds it, and the `nifty-fyers-auth` Cloud Scheduler job is
+  **disabled** -- it could only ever fail.
+- `scripts/fyers_auth_job.py` remains as a **parked, tested** TOTP rotator: the
+  one path to fully unattended auth, verified against RFC 6238 and tolerant of
+  both of Fyers' host/version pairs. It is not scheduled and not deployed. Keep
+  it compiling and tested; if TOTP credentials are ever wanted, revive it
+  rather than writing a new rotator.
+- The Cloud Run **service agent** (`service-<num>@serverless-robot-prod`) needs
+  `roles/secretmanager.secretAccessor` on each secret a job binds, in addition
+  to the job's runtime SA. Without it the deploy fails
+  `SecretsAccessCheckFailed` with a misleading "versions/latest was not found"
+  even when every secret has versions.
+- Never commit `.env`, `.fyers_token`, or any token/PIN/TOTP value. Secrets
+  reach the cloud only via `gcloud secrets versions add --data-file=-`.
 
 ## Standard workflows
 
@@ -87,8 +147,19 @@ historical-analogue matching. It is NOT a web app.
   when the feed returns. **Consequence: during a feed outage the dashboard
   freezes rather than republishing stale data, and the commit log gaps.** That
   is intended.
-- The closing 15:31 cycle is exempt from the gate: the archive already holds
-  the full session, so a failed final fetch must not cost the session export.
+- The Cloud Run intraday job shares that gate by importing
+  `data_is_fresh` from the loop (`scripts/cloud_intraday_export.py`), so the
+  cloud and local paths cannot drift, and a stale feed never reaches the bucket.
+- Because the gate keeps the *last good* JSON published, a stopped feed looks
+  like a quiet dashboard rather than an error. The exporter therefore stamps a
+  `_freshness` block (`last_bar_ts`, `generated_at`) into every intraday
+  payload, and `index.html` raises a banner when the newest bar is more than
+  12 min old during IST market hours. Keep the UI tolerance and
+  `MAX_BAR_AGE_MIN` equal, or the banner will contradict the gate. `_freshness`
+  is deliberately a sibling of `_meta`, not a key inside it: `_meta` is the WFO
+  contract and is asserted field-by-field in tests.
+- The closing 15:31 cycle is exempt from the gate: the archive already holds the
+  full session, so a failed final fetch must not cost the session export.
 
 
 

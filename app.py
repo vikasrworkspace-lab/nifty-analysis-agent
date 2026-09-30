@@ -64,7 +64,9 @@ def render_intraday(settings, tf_label: str):
         index=0, format_func=lambda s: s[:10],
     )
     pos = int(np.flatnonzero(frame.index.date.astype(str) == chosen)[-1])
-    sim, dist = patterns.find_analogues(frame, z, features, weights, pos, k, look)
+    sim, dist = patterns.find_analogues(
+        frame, z, features, weights, pos, k, look, session_col="session"
+    )
     if not sim:
         st.info("No analogues at this position yet.")
         return

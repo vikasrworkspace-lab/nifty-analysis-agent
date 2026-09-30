@@ -2,6 +2,7 @@ import json
 import os
 import sys
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
@@ -36,6 +37,31 @@ class IntradayWFO:
         self.feature_combinations = []
         for r in range(1, min(6, len(all_features) + 1)):
             self.feature_combinations.extend(list(itertools.combinations(all_features, r)))
+
+    def _session_start_positions(self):
+        """Bar positions that open a new trading session.
+
+        ``Forward_Return`` is measured to each bar's own session close, so a
+        fold boundary landing mid-session lets the last validation bar's label
+        reach into the OOS window -- the same class of leak as intraday
+        analogues drawn from the target's own session. Snapping fold edges to
+        session starts keeps train/validation/OOS label horizons disjoint.
+        """
+        day = self.df.index.normalize()
+        is_start = np.empty(len(day), dtype=bool)
+        is_start[0] = True
+        is_start[1:] = day[1:].to_numpy() != day[:-1].to_numpy()
+        return np.flatnonzero(is_start)
+
+    def _snap_forward(self, starts, pos):
+        """First session start at or after ``pos``."""
+        i = np.searchsorted(starts, pos)
+        return int(starts[i]) if i < len(starts) else len(self.df)
+
+    def _snap_back(self, starts, pos):
+        """Last session start at or before ``pos``."""
+        i = np.searchsorted(starts, pos, side="right") - 1
+        return int(starts[i]) if i >= 0 else 0
 
     def _evaluate_combo(self, X_train, y_train_ret, X_eval, y_eval_ret, features):
         """Score a feature combo: nearest-analogue prediction on eval window."""
@@ -90,9 +116,21 @@ class IntradayWFO:
         oos_wins_total = 0
         step_size = self.oos_size
 
-        for start_oos in range(self.train_size + self.val_size, total_bars, step_size):
+        session_starts = self._session_start_positions()
+        # OOS folds are advanced by whole OOS blocks, so consecutive OOS
+        # windows never overlap. Each start is snapped forward to a session
+        # boundary and the train/validation edge is snapped back to one, so no
+        # validation label can extend into the OOS window.
+        cursor = self.train_size + self.val_size
+        while cursor < total_bars:
+            start_oos = self._snap_forward(session_starts, cursor)
+            if start_oos >= total_bars:
+                break
             end_oos = min(start_oos + step_size, total_bars)
-            start_val = start_oos - self.val_size
+            start_val = self._snap_back(session_starts, start_oos - self.val_size)
+            cursor = end_oos
+            if start_val <= 0:
+                continue
 
             # --- Phase 1: find best combo on Validation window ---
             X_train = self.df.iloc[:start_val]
@@ -300,6 +338,16 @@ def process_intraday_symbol(symbol_name, db_filename):
         tf_df['Date'] = tf_df.index.date
         tf_df['Session_Close'] = tf_df.groupby('Date')['Close'].transform('last')
         tf_df['Forward_Return'] = (tf_df['Session_Close'] - tf_df['Close']) / tf_df['Close'] * 100
+
+        # Daily return = this bar's close vs the previous session's close. Not
+        # bar open->close, which understated the day's move and made the Intraday
+        # tab disagree with the daily/BTST tabs.
+        session_closes = tf_df.groupby('Date')['Close'].last()
+        tf_df['Prev_Session_Close'] = tf_df['Date'].map(session_closes.shift(1))
+        tf_df['Daily_Return'] = (
+            (tf_df['Close'] - tf_df['Prev_Session_Close'])
+            / tf_df['Prev_Session_Close'] * 100
+        )
         
         # Calculate Forward Max Up (MFE) and Max Down (MAE) for the rest of the session
         reversed_df = tf_df.iloc[::-1]
@@ -368,6 +416,7 @@ def process_intraday_symbol(symbol_name, db_filename):
         # UI Payload: Include the last 15 days for robust analogue matching
         last_days = unique_dates[-15:] if len(unique_dates) >= 15 else unique_dates
         ui_df = tf_df[tf_df.index.date >= last_days[0]]
+        last_bar = ui_df.index[-1] if len(ui_df) else None
         
         for dt, row in ui_df.iterrows():
             date_str = dt.isoformat()
@@ -391,7 +440,7 @@ def process_intraday_symbol(symbol_name, db_filename):
                 "low": round(float(row["Low"]), 2),
                 "close": round(c, 2),
                 "volume": float(row["Volume"]),
-                "daily_return_pct": round(((c - o) / o) * 100, 2) if o else 0.0,
+                "daily_return_pct": round(float(row["Daily_Return"]), 2) if pd.notna(row.get("Daily_Return")) else 0.0,
                 "forward_return_pct": round(float(row["Forward_Return"]), 2),
                 "forward_max_up_pct": round(float(row.get("Forward_Max_Up", 0.0)), 2),
                 "forward_max_down_pct": round(float(row.get("Forward_Max_Down", 0.0)), 2),
@@ -419,10 +468,31 @@ def process_intraday_symbol(symbol_name, db_filename):
             }
             data[date_str] = {"signals": signals}
             
+        # Freshness travels in its own block rather than inside _meta: _meta is
+        # the WFO contract and is asserted field-by-field in tests, so it is not
+        # the place to bolt on unrelated keys.
+        data["_freshness"] = freshness_block(symbol_name, tf_str, last_bar)
+
         with open(data_file, "w") as f:
             json.dump(data, f)
             
         print(f"[{symbol_name}] Exported {data_file} ({tf_str}m) with TRUE INTRADAY features and WFO.")
+
+def freshness_block(symbol_name: str, tf_str: str, last_bar) -> dict:
+    """The ``_freshness`` block stamped into an intraday payload.
+
+    Its own block rather than a key inside ``_meta``, which is the WFO contract
+    and is asserted field-by-field in tests. The UI reads this to warn that the
+    feed has stopped -- the one failure mode a skipped morning login causes, and
+    the one the user would otherwise only notice by eye.
+    """
+    return {
+        "symbol": symbol_name,
+        "timeframe": f"{tf_str}m",
+        "last_bar_ts": last_bar.isoformat() if last_bar is not None else None,
+        "generated_at": datetime.now(ZoneInfo("Asia/Kolkata")).isoformat(),
+    }
+
 
 def main():
     instruments = [

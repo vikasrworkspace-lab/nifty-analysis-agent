@@ -1,16 +1,57 @@
+# NIFTY Analysis Agent - runtime dependencies.
+#
+# !! fyers-apiv3 MUST NOT be installed by pip with dependency resolution. !!
+# fyers-apiv3 3.1.18 (the latest release) declares mutually incompatible pins:
+#   aiohttp==3.9.3            - no cp313 wheel, predates Python 3.13; pip falls
+#                                back to a source build and demands MSVC
+#   asyncio==3.4.3            - a pre-3.4 stdlib backport that shadows the real
+#                                asyncio module; it is not used by this project
+#   aws_lambda_powertools==1.25.5, requests==2.31.0, websocket-client==1.6.1
+# So install it explicitly, and declare what it actually imports:
+#
+#     pip install -r requirements.txt
+#     pip install --no-deps fyers-apiv3==3.1.18
+#
+# The real third-party imports across the fyers_apiv3 package are aiohttp,
+# requests, websocket, aws_lambda_powertools, google.protobuf and pkg_resources
+# (setuptools) - all declared below. Overriding aiohttp>=3.13 in this file does
+# NOT work: pip raises ResolutionImpossible against the ==3.9.3 pin.
+
 yfinance>=0.2.40
 pandas>=2.0
 numpy>=1.24
 matplotlib>=3.7
 streamlit>=1.36
 plotly>=5.20
-# optional: deep intraday backfill (2015+) via Zerodha Kite — install before
+# optional: deep intraday backfill (2015+) via Zerodha Kite - install before
 # running scripts/backfill_intraday.py; only needed if you skip the 60-day
-# free yfinance collector
+# free yfinance collector. The live intraday path is Fyers (see fyers-apiv3);
+# this is retained solely for that standalone backfill script.
 kiteconnect>=5.0
 nselib>=2.5.1
 
 pandas_ta
-jugaad-data>=0.2.6
-jugaad-data>=0.35.9
 pytest>=8.0
+
+# --- fyers-apiv3 runtime imports (install the package itself with --no-deps) ---
+aiohttp>=3.13
+aws-lambda-powertools>=2
+requests>=2.31
+websocket-client>=1.7
+setuptools>=70
+protobuf>=4
+
+# --- runtime helpers used across core/ ---
+python-dotenv>=1.0
+pytz>=2024.1
+
+# --- Cloud Storage persistent cache (core/gcs_cache.py) ---
+# Inert unless GCS_CACHE_BUCKET is set, so local development never calls it.
+google-cloud-storage>=2.14
+
+# --- Secret Manager (scripts/fyers_auth_job.py) ---
+# The daily Fyers token rotator writes a new FYERS_ACCESS_TOKEN version. Only
+# imported by that script, so local development never needs it.
+google-cloud-secret-manager>=2.20
+
+jugaad-data>=0.35.9

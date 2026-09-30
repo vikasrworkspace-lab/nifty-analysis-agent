@@ -48,8 +48,10 @@ def main() -> None:
     if args.symbols == "all":
         data.update_all(settings)
     else:
+        # Every --symbols choice here is an Indian cash-market series, so the
+        # in-session guard applies: a partial bar must never be stored as a close.
         sym = settings["symbols"][args.symbols]
-        data.update_history(args.symbols, sym, settings)
+        data.update_history(args.symbols, sym, settings, session_close=data.INDIA_SESSION_CLOSE)
     data.save_daily_snapshots(settings)
     print("Done. Data is cached under data/historical/.")
 

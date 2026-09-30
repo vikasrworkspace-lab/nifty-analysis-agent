@@ -28,7 +28,9 @@ def backtest_bars(frame: pd.DataFrame, settings: dict, features, weights,
     rows = []
 
     for p in pos:
-        sim, _ = patterns.find_analogues(frame, z, features, weights, int(p), k, lookback)
+        sim, _ = patterns.find_analogues(
+            frame, z, features, weights, int(p), k, lookback, session_col="session"
+        )
         if not sim:
             continue
         cohort = target_col.iloc[sim].dropna()

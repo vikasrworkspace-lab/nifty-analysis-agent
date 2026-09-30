@@ -7,7 +7,8 @@
     "global": ["^TNX", "DX-Y.NYB", "INR=X", "CL=F", "GC=F"]
   },
   "data": {
-    "start_date": "2004-01-01"
+    "start_date": "2004-01-01",
+    "refetch_overlap_days": 5
   },
   "indicators": {
     "ma_periods": [20, 50, 200],
@@ -65,11 +66,26 @@
     "daily_reports_subdir": "daily",
     "backtest_reports_subdir": "backtest",
     "intraday_archive_dir": "data/intraday",
-    "intraday_reports_subdir": "intraday"
+    "intraday_reports_subdir": "intraday",
+    "fyers_db_dir": "data/fyers_db"
   },
   "report": {
     "title": "Nifty Analyst - Daily Research Report",
     "timezone": "Asia/Kolkata"
+  },
+  "options": {
+    "_comment_risk_free_rate": "Annualised decimal rate used by Black-Scholes (0.0717 = 7.17%). This is a SINGLE-POINT PROXY: the Indian 10Y G-Sec yield. It is NOT a maturity-matched risk-free curve, so discount factors carry basis error against the true DTE 6-54 term structure. At those tenors the effect is small (delta/gamma are near rate-independent; theta carries the residual error), and the alternative -- silently pricing at r=0 -- is worse. Refreshing this value is MANUAL: it is a documented snapshot, not a live feed.",
+    "risk_free_rate": 0.0717,
+    "risk_free_rate_source": "India 10Y Government Security yield",
+    "risk_free_rate_as_of": "2026-09-29",
+    "risk_free_rate_type": "proxy",
+    "risk_free_rate_refresh": "manual",
+    "_comment_expiry": "Expiry selection. front = nearest valid (non-expired) expiry; second = next expiry that is the last in its own calendar month (monthly derived from the calendar, never assumed). Both are always retained so the risk model can weigh DTE rather than defaulting to the nearest.",
+    "expiry_strike_span": 3,
+    "min_dte": 1,
+    "min_iv": 0.01,
+    "btst_min_dte": 3,
+    "exec_min_rr": null
   },
   "intraday": {
     "base_timeframe": "5m",

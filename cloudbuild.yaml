@@ -1,0 +1,57 @@
+# Build and publish the two container images the live data pipeline runs on.
+#
+#   data-service:latest -> Cloud Run SERVICE nifty-dashboard-data
+#                          (serves the GCS dashboard JSON to Firebase Hosting)
+#   job:latest          -> Cloud Run JOBS    nifty-fyers-update,
+#                                             nifty-intraday-export
+#
+# Both are pushed straight to Artifact Registry, which is what the Cloud Run
+# services and jobs reference by tag, so running this build *is* the deploy:
+#
+#   gcloud builds submit --config cloudbuild.yaml --project market-analysis-7dc40
+#
+# Cloud Run will not pick up a source edit on its own, so any change to
+# scripts/cloud_intraday_export.py, scripts/cloud_export.py, core/ or
+# data-service/app.py requires a rebuild here before it can take effect.
+#
+# nifty/analysis:latest (the daily dashboard-export job) is deliberately not
+# built here. That job is changed by editing its args, not its image, and it
+# uses the same root Dockerfile as job:latest.
+#
+# Build contexts are kept minimal on purpose. The root .dockerignore already
+# excludes data/, reports/, public/, every *.json artifact, .env and
+# .fyers_token, so no market data or credential can reach an image layer; the
+# root Dockerfile additionally COPYs only requirements.txt, core/, config/ and
+# scripts/.
+
+substitutions:
+  _REGION: asia-south1
+  _REPO: nifty
+  _PROJECT: market-analysis-7dc40
+
+images:
+  - ${_REGION}-docker.pkg.dev/${_PROJECT}/${_REPO}/data-service:latest
+  - ${_REGION}-docker.pkg.dev/${_PROJECT}/${_REPO}/job:latest
+
+steps:
+  # `name` is the image that RUNS the step, so it must be a Docker builder --
+  # not the artifact being produced. `args` is passed to that builder's
+  # entrypoint, and the output tag is only communicated via `-t` plus the
+  # top-level `images:` list that pushes both results afterwards.
+
+  - id: build-data-service
+    name: gcr.io/cloud-builders/docker
+    dir: data-service
+    args:
+      - build
+      - -t
+      - ${_REGION}-docker.pkg.dev/${_PROJECT}/${_REPO}/data-service:latest
+      - .
+
+  - id: build-job
+    name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -t
+      - ${_REGION}-docker.pkg.dev/${_PROJECT}/${_REPO}/job:latest
+      - .

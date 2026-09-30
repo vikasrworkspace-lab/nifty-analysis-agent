@@ -65,11 +65,21 @@ def find_analogues(
     target_pos: int,
     k: int,
     standardize_lookback: int,
+    session_col=None,
 ):
     """Top-k most similar historical days strictly BEFORE target_pos.
 
     Similarity = weighted Euclidean distance on point-in-time z-scored features.
     Returns (positions, distances).
+
+    ``session_col`` enables the intraday no-lookahead guard. In a bar-level
+    frame every bar is labelled with a forward outcome that runs to its own
+    session close (``rest_of_session`` / ``fwd_ret_1``). A candidate from the
+    SAME session as the target therefore carries an outcome that extends past
+    the target bar -- the target's own future would leak into the analogue
+    cohort. Passing the session column drops those candidates, so analogues are
+    drawn only from strictly earlier sessions. Daily frames pass None: their
+    next-day outcome is already strictly after the target day.
     """
     feats = np.array([z[f].to_numpy(dtype=float) for f in features]).T
     w = np.array([weights.get(f, 1.0) for f in features], dtype=float)
@@ -77,6 +87,9 @@ def find_analogues(
     mask = ~np.isnan(feats).any(axis=1)
     cand_idx = np.flatnonzero(mask)
     cand_idx = cand_idx[cand_idx < target_pos]
+    if session_col is not None and session_col in frame.columns:
+        sessions = frame[session_col].to_numpy()
+        cand_idx = cand_idx[sessions[cand_idx] != sessions[target_pos]]
     if cand_idx.size == 0:
         return [], []
     cand = feats[cand_idx]

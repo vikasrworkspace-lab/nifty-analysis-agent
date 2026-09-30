@@ -6,6 +6,8 @@ import pandas as pd
 from dotenv import load_dotenv
 from fyers_apiv3 import fyersModel
 
+from core.fyers_auth import resolve_access_token
+
 # Setup timezone
 import pytz
 IST = pytz.timezone("Asia/Kolkata")
@@ -14,21 +16,22 @@ def get_fyers_client():
     """Initializes and returns the Fyers API client."""
     load_dotenv()
     client_id = os.getenv("FYERS_APP_ID")
-    token_file = ".fyers_token"
-    
-    if not os.path.exists(token_file):
-        raise FileNotFoundError("No access token found. Please run scripts/fyers_login.py first.")
-        
-    with open(token_file, "r") as f:
-        access_token = f.read().strip()
-        
+    access_token = resolve_access_token()
     return fyersModel.FyersModel(client_id=client_id, is_async=False, token=access_token, log_path="")
 
-def get_db_path(symbol: str, resolution: str) -> Path:
-    """Returns the local CSV database path for the given symbol and timeframe."""
+def get_db_path(symbol: str, resolution: str, settings: dict = None) -> Path:
+    """Returns the local CSV database path for the given symbol and timeframe.
+
+    The root comes from settings (``paths.fyers_db_dir``) so there is a single
+    source of truth shared with the cloud cache layer.
+    """
+    import core.settings as settings_mod
+
+    if settings is None:
+        settings = settings_mod.load_settings()
     # Clean symbol for filename (e.g. NSE:NIFTY50-INDEX -> NSE_NIFTY50-INDEX)
     safe_sym = symbol.replace(":", "_")
-    db_dir = Path("data/fyers_db") / resolution
+    db_dir = settings_mod.rel(settings, "fyers_db_dir") / resolution
     db_dir.mkdir(parents=True, exist_ok=True)
     return db_dir / f"{safe_sym}.csv"
 
@@ -57,13 +60,13 @@ def fetch_chunk(fyers, symbol: str, resolution: str, start_date: datetime, end_d
     
     return df
 
-def build_historical_database(symbol: str, resolution: str, days_back: int = 300):
+def build_historical_database(symbol: str, resolution: str, days_back: int = 300, settings: dict = None):
     """
     Builds or updates the local historical database for a given instrument.
     Fyers allows max 100 days per request for intraday. We chunk backwards.
     """
     fyers = get_fyers_client()
-    db_path = get_db_path(symbol, resolution)
+    db_path = get_db_path(symbol, resolution, settings)
     
     end_dt = datetime.now()
     start_dt = end_dt - timedelta(days=days_back)

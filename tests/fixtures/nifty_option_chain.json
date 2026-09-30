@@ -1,0 +1,777 @@
+{
+ "_comment": [
+  "SANITIZED snapshot of the jugaad_data NSELive option chain, captured 2026-09-30.",
+  "Structure mirrors the live response exactly, including its defects, so tests",
+  "exercise real shapes rather than an idealised feed:",
+  "  - optionType is null on every leg (CE/PE identity lives only in the row key)",
+  "  - strikePrices is sparse and unevenly spaced and must NOT be used for spacing",
+  "  - impliedVolatility is PERCENT (13.0 means 13%), and is 0 on far OTM rows",
+  "  - expiryDates use dd-MMM-yyyy, per-leg expiryDate uses dd-mm-yyyy",
+  "  - no greeks are supplied at all",
+  "Values are real NSE levels rounded for readability. No URLs, cookies or session",
+  "ids are stored."
+ ],
+ "front": {
+  "expiry_label": "06-Oct-2026",
+  "records": {
+   "timestamp": "29-Sep-2026 15:40:00",
+   "underlyingValue": 25000.0,
+   "expiryDates": [
+    "06-Oct-2026",
+    "13-Oct-2026",
+    "19-Oct-2026",
+    "27-Oct-2026",
+    "03-Nov-2026",
+    "23-Nov-2026",
+    "29-Dec-2026",
+    "30-Mar-2027"
+   ],
+   "strikePrices": [
+    "15000",
+    "18000",
+    "21000",
+    "24000",
+    "24600",
+    "25000",
+    "25400",
+    "26000",
+    "28000",
+    "34500"
+   ],
+   "data": [
+    {
+     "strikePrice": 24600,
+     "expiryDate": "06-10-2026",
+     "PE": {
+      "lastPrice": 31.35,
+      "buyPrice1": 30.85,
+      "sellPrice1": 31.85,
+      "buyQuantity1": 850,
+      "sellQuantity1": 640,
+      "totalTradedVolume": 3120,
+      "openInterest": 4820,
+      "changeinOpenInterest": -410,
+      "impliedVolatility": 0.0,
+      "optionType": null,
+      "identifier": "OPTIDX24600PE",
+      "underlyingValue": 25000.0
+     },
+     "CE": {
+      "lastPrice": 460.3,
+      "buyPrice1": 459.8,
+      "sellPrice1": 460.8,
+      "buyQuantity1": 12000,
+      "sellQuantity1": 9400,
+      "totalTradedVolume": 8840,
+      "openInterest": 2140,
+      "changeinOpenInterest": -95,
+      "impliedVolatility": 0.0,
+      "optionType": null,
+      "identifier": "OPTIDX24600CE",
+      "underlyingValue": 25000.0
+     }
+    },
+    {
+     "strikePrice": 24700,
+     "expiryDate": "06-10-2026",
+     "PE": {
+      "lastPrice": 49.3,
+      "buyPrice1": 48.8,
+      "sellPrice1": 49.8,
+      "buyQuantity1": 940,
+      "sellQuantity1": 720,
+      "totalTradedVolume": 4210,
+      "openInterest": 6230,
+      "changeinOpenInterest": -520,
+      "impliedVolatility": 0.0,
+      "optionType": null,
+      "identifier": "OPTIDX24700PE",
+      "underlyingValue": 25000.0
+     },
+     "CE": {
+      "lastPrice": 378.4,
+      "buyPrice1": 377.9,
+      "sellPrice1": 378.9,
+      "buyQuantity1": 11000,
+      "sellQuantity1": 8600,
+      "totalTradedVolume": 11200,
+      "openInterest": 3180,
+      "changeinOpenInterest": -140,
+      "impliedVolatility": 0.0,
+      "optionType": null,
+      "identifier": "OPTIDX24700CE",
+      "underlyingValue": 25000.0
+     }
+    },
+    {
+     "strikePrice": 24800,
+     "expiryDate": "06-10-2026",
+     "PE": {
+      "lastPrice": 74.35,
+      "buyPrice1": 73.85,
+      "sellPrice1": 74.85,
+      "buyQuantity1": 1120,
+      "sellQuantity1": 880,
+      "totalTradedVolume": 6480,
+      "openInterest": 9140,
+      "changeinOpenInterest": -760,
+      "impliedVolatility": 12.85,
+      "optionType": null,
+      "identifier": "OPTIDX24800PE",
+      "underlyingValue": 25000.0
+     },
+     "CE": {
+      "lastPrice": 303.55,
+      "buyPrice1": 303.05,
+      "sellPrice1": 304.05,
+      "buyQuantity1": 9800,
+      "sellQuantity1": 7200,
+      "totalTradedVolume": 15600,
+      "openInterest": 5240,
+      "changeinOpenInterest": -210,
+      "impliedVolatility": 12.85,
+      "optionType": null,
+      "identifier": "OPTIDX24800CE",
+      "underlyingValue": 25000.0
+     }
+    },
+    {
+     "strikePrice": 24900,
+     "expiryDate": "06-10-2026",
+     "PE": {
+      "lastPrice": 114.7,
+      "buyPrice1": 114.2,
+      "sellPrice1": 115.2,
+      "buyQuantity1": 1380,
+      "sellQuantity1": 1040,
+      "totalTradedVolume": 9240,
+      "openInterest": 12760,
+      "changeinOpenInterest": -980,
+      "impliedVolatility": 13.42,
+      "optionType": null,
+      "identifier": "OPTIDX24900PE",
+      "underlyingValue": 25000.0
+     },
+     "CE": {
+      "lastPrice": 244.0,
+      "buyPrice1": 243.5,
+      "sellPrice1": 244.5,
+      "buyQuantity1": 8400,
+      "sellQuantity1": 6100,
+      "totalTradedVolume": 21400,
+      "openInterest": 7320,
+      "changeinOpenInterest": -280,
+      "impliedVolatility": 13.42,
+      "optionType": null,
+      "identifier": "OPTIDX24900CE",
+      "underlyingValue": 25000.0
+     }
+    },
+    {
+     "strikePrice": 25000,
+     "expiryDate": "06-10-2026",
+     "PE": {
+      "lastPrice": 175.0,
+      "buyPrice1": 174.5,
+      "sellPrice1": 175.5,
+      "buyQuantity1": 2140,
+      "sellQuantity1": 1680,
+      "totalTradedVolume": 15800,
+      "openInterest": 18900,
+      "changeinOpenInterest": -1240,
+      "impliedVolatility": 14.78,
+      "optionType": null,
+      "identifier": "OPTIDX25000PE",
+      "underlyingValue": 25000.0
+     },
+     "CE": {
+      "lastPrice": 204.45,
+      "buyPrice1": 203.95,
+      "sellPrice1": 204.95,
+      "buyQuantity1": 7200,
+      "sellQuantity1": 5400,
+      "totalTradedVolume": 28200,
+      "openInterest": 10640,
+      "changeinOpenInterest": -410,
+      "impliedVolatility": 14.78,
+      "optionType": null,
+      "identifier": "OPTIDX25000CE",
+      "underlyingValue": 25000.0
+     }
+    },
+    {
+     "strikePrice": 25100,
+     "expiryDate": "06-10-2026",
+     "PE": {
+      "lastPrice": 241.35,
+      "buyPrice1": 240.85,
+      "sellPrice1": 241.85,
+      "buyQuantity1": 1620,
+      "sellQuantity1": 1290,
+      "totalTradedVolume": 11400,
+      "openInterest": 14250,
+      "changeinOpenInterest": -880,
+      "impliedVolatility": 15.91,
+      "optionType": null,
+      "identifier": "OPTIDX25100PE",
+      "underlyingValue": 25000.0
+     },
+     "CE": {
+      "lastPrice": 170.9,
+      "buyPrice1": 170.4,
+      "sellPrice1": 171.4,
+      "buyQuantity1": 6100,
+      "sellQuantity1": 4600,
+      "totalTradedVolume": 19800,
+      "openInterest": 8820,
+      "changeinOpenInterest": -350,
+      "impliedVolatility": 15.91,
+      "optionType": null,
+      "identifier": "OPTIDX25100CE",
+      "underlyingValue": 25000.0
+     }
+    },
+    {
+     "strikePrice": 25200,
+     "expiryDate": "06-10-2026",
+     "PE": {
+      "lastPrice": 312.3,
+      "buyPrice1": 311.8,
+      "sellPrice1": 312.8,
+      "buyQuantity1": 1240,
+      "sellQuantity1": 980,
+      "totalTradedVolume": 8240,
+      "openInterest": 10280,
+      "changeinOpenInterest": -640,
+      "impliedVolatility": 16.84,
+      "optionType": null,
+      "identifier": "OPTIDX25200PE",
+      "underlyingValue": 25000.0
+     },
+     "CE": {
+      "lastPrice": 142.0,
+      "buyPrice1": 141.5,
+      "sellPrice1": 142.5,
+      "buyQuantity1": 5200,
+      "sellQuantity1": 3900,
+      "totalTradedVolume": 15400,
+      "openInterest": 6940,
+      "changeinOpenInterest": -260,
+      "impliedVolatility": 16.84,
+      "optionType": null,
+      "identifier": "OPTIDX25200CE",
+      "underlyingValue": 25000.0
+     }
+    },
+    {
+     "strikePrice": 25400,
+     "expiryDate": "06-10-2026",
+     "PE": {
+      "lastPrice": 412.85,
+      "buyPrice1": 412.35,
+      "sellPrice1": 413.35,
+      "buyQuantity1": 320,
+      "sellQuantity1": 260,
+      "totalTradedVolume": 2140,
+      "openInterest": 4180,
+      "changeinOpenInterest": -180,
+      "impliedVolatility": 0.0,
+      "optionType": null,
+      "identifier": "OPTIDX25400PE",
+      "underlyingValue": 25000.0
+     },
+     "CE": {
+      "lastPrice": 94.9,
+      "buyPrice1": 94.4,
+      "sellPrice1": 95.4,
+      "buyQuantity1": 2400,
+      "sellQuantity1": 1800,
+      "totalTradedVolume": 6200,
+      "openInterest": 3260,
+      "changeinOpenInterest": -120,
+      "impliedVolatility": 18.2,
+      "optionType": null,
+      "identifier": "OPTIDX25400CE",
+      "underlyingValue": 25000.0
+     }
+    }
+   ]
+  }
+ },
+ "monthly": {
+  "expiry_label": "27-Oct-2026",
+  "records": {
+   "timestamp": "29-Sep-2026 15:40:00",
+   "underlyingValue": 25000.0,
+   "expiryDates": [
+    "06-Oct-2026",
+    "13-Oct-2026",
+    "19-Oct-2026",
+    "27-Oct-2026",
+    "03-Nov-2026",
+    "23-Nov-2026",
+    "29-Dec-2026",
+    "30-Mar-2027"
+   ],
+   "strikePrices": [
+    "15000",
+    "18000",
+    "21000",
+    "24000",
+    "24600",
+    "25000",
+    "25400",
+    "26000",
+    "28000",
+    "34500"
+   ],
+   "data": [
+    {
+     "strikePrice": 24600,
+     "expiryDate": "27-10-2026",
+     "PE": {
+      "lastPrice": 126.65,
+      "buyPrice1": 126.15,
+      "sellPrice1": 127.15,
+      "buyQuantity1": 620,
+      "sellQuantity1": 480,
+      "totalTradedVolume": 2140,
+      "openInterest": 6820,
+      "changeinOpenInterest": 240,
+      "impliedVolatility": 12.1,
+      "optionType": null,
+      "identifier": "OPTIDX24600PE27OCT",
+      "underlyingValue": 25000.0
+     },
+     "CE": {
+      "lastPrice": 656.8,
+      "buyPrice1": 656.3,
+      "sellPrice1": 657.3,
+      "buyQuantity1": 1840,
+      "sellQuantity1": 1420,
+      "totalTradedVolume": 4820,
+      "openInterest": 5240,
+      "changeinOpenInterest": 180,
+      "impliedVolatility": 12.1,
+      "optionType": null,
+      "identifier": "OPTIDX24600CE27OCT",
+      "underlyingValue": 25000.0
+     }
+    },
+    {
+     "strikePrice": 24700,
+     "expiryDate": "27-10-2026",
+     "PE": {
+      "lastPrice": 161.9,
+      "buyPrice1": 161.4,
+      "sellPrice1": 162.4,
+      "buyQuantity1": 710,
+      "sellQuantity1": 540,
+      "totalTradedVolume": 2680,
+      "openInterest": 7840,
+      "changeinOpenInterest": 310,
+      "impliedVolatility": 12.4,
+      "optionType": null,
+      "identifier": "OPTIDX24700PE27OCT",
+      "underlyingValue": 25000.0
+     },
+     "CE": {
+      "lastPrice": 592.55,
+      "buyPrice1": 592.05,
+      "sellPrice1": 593.05,
+      "buyQuantity1": 1620,
+      "sellQuantity1": 1210,
+      "totalTradedVolume": 5410,
+      "openInterest": 4620,
+      "changeinOpenInterest": 195,
+      "impliedVolatility": 12.4,
+      "optionType": null,
+      "identifier": "OPTIDX24700CE27OCT",
+      "underlyingValue": 25000.0
+     }
+    },
+    {
+     "strikePrice": 24800,
+     "expiryDate": "27-10-2026",
+     "PE": {
+      "lastPrice": 202.75,
+      "buyPrice1": 202.25,
+      "sellPrice1": 203.25,
+      "buyQuantity1": 840,
+      "sellQuantity1": 660,
+      "totalTradedVolume": 3420,
+      "openInterest": 9420,
+      "changeinOpenInterest": 420,
+      "impliedVolatility": 12.72,
+      "optionType": null,
+      "identifier": "OPTIDX24800PE27OCT",
+      "underlyingValue": 25000.0
+     },
+     "CE": {
+      "lastPrice": 533.95,
+      "buyPrice1": 533.45,
+      "sellPrice1": 534.45,
+      "buyQuantity1": 1480,
+      "sellQuantity1": 1140,
+      "totalTradedVolume": 6240,
+      "openInterest": 4180,
+      "changeinOpenInterest": 165,
+      "impliedVolatility": 12.72,
+      "optionType": null,
+      "identifier": "OPTIDX24800CE27OCT",
+      "underlyingValue": 25000.0
+     }
+    },
+    {
+     "strikePrice": 24900,
+     "expiryDate": "27-10-2026",
+     "PE": {
+      "lastPrice": 246.4,
+      "buyPrice1": 245.9,
+      "sellPrice1": 246.9,
+      "buyQuantity1": 980,
+      "sellQuantity1": 760,
+      "totalTradedVolume": 4180,
+      "openInterest": 11250,
+      "changeinOpenInterest": 540,
+      "impliedVolatility": 12.95,
+      "optionType": null,
+      "identifier": "OPTIDX24900PE27OCT",
+      "underlyingValue": 25000.0
+     },
+     "CE": {
+      "lastPrice": 478.1,
+      "buyPrice1": 477.6,
+      "sellPrice1": 478.6,
+      "buyQuantity1": 1320,
+      "sellQuantity1": 980,
+      "totalTradedVolume": 7210,
+      "openInterest": 3860,
+      "changeinOpenInterest": 140,
+      "impliedVolatility": 12.95,
+      "optionType": null,
+      "identifier": "OPTIDX24900CE27OCT",
+      "underlyingValue": 25000.0
+     }
+    },
+    {
+     "strikePrice": 25000,
+     "expiryDate": "27-10-2026",
+     "PE": {
+      "lastPrice": 290.0,
+      "buyPrice1": 289.5,
+      "sellPrice1": 290.5,
+      "buyQuantity1": 1240,
+      "sellQuantity1": 920,
+      "totalDradedVolume": 0,
+      "totalTradedVolume": 5240,
+      "openInterest": 13680,
+      "changeinOpenInterest": 680,
+      "impliedVolatility": 13.0,
+      "optionType": null,
+      "identifier": "OPTIDX25000PE27OCT",
+      "underlyingValue": 25000.0
+     },
+     "CE": {
+      "lastPrice": 422.25,
+      "buyPrice1": 421.75,
+      "sellPrice1": 422.75,
+      "buyQuantity1": 1180,
+      "sellQuantity1": 860,
+      "totalDradedVolume": 0,
+      "totalTradedVolume": 8420,
+      "openInterest": 4520,
+      "changeinOpenInterest": 205,
+      "impliedVolatility": 13.0,
+      "optionType": null,
+      "identifier": "OPTIDX25000CE27OCT",
+      "underlyingValue": 25000.0
+     }
+    },
+    {
+     "strikePrice": 25100,
+     "expiryDate": "27-10-2026",
+     "PE": {
+      "lastPrice": 339.45,
+      "buyPrice1": 338.95,
+      "sellPrice1": 339.95,
+      "buyQuantity1": 1060,
+      "sellQuantity1": 820,
+      "totalTradedVolume": 4620,
+      "openInterest": 11940,
+      "changeinOpenInterest": 590,
+      "impliedVolatility": 13.1,
+      "optionType": null,
+      "identifier": "OPTIDX25100PE27OCT",
+      "underlyingValue": 25000.0
+     },
+     "CE": {
+      "lastPrice": 372.2,
+      "buyPrice1": 371.7,
+      "sellPrice1": 372.7,
+      "buyQuantity1": 1020,
+      "sellQuantity1": 740,
+      "totalTradedVolume": 6940,
+      "openInterest": 4210,
+      "changeinOpenInterest": 180,
+      "impliedVolatility": 13.1,
+      "optionType": null,
+      "identifier": "OPTIDX25100CE27OCT",
+      "underlyingValue": 25000.0
+     }
+    },
+    {
+     "strikePrice": 25200,
+     "expiryDate": "27-10-2026",
+     "PE": {
+      "lastPrice": 394.7,
+      "buyPrice1": 394.2,
+      "sellPrice1": 395.2,
+      "buyQuantity1": 940,
+      "sellQuantity1": 700,
+      "totalTradedVolume": 3820,
+      "openInterest": 10480,
+      "changeinOpenInterest": 480,
+      "impliedVolatility": 13.25,
+      "optionType": null,
+      "identifier": "OPTIDX25200PE27OCT",
+      "underlyingValue": 25000.0
+     },
+     "CE": {
+      "lastPrice": 328.0,
+      "buyPrice1": 327.5,
+      "sellPrice1": 328.5,
+      "buyQuantity1": 880,
+      "sellQuantity1": 620,
+      "totalTradedVolume": 5410,
+      "openInterest": 3840,
+      "changeinOpenInterest": 155,
+      "impliedVolatility": 13.25,
+      "optionType": null,
+      "identifier": "OPTIDX25200CE27OCT",
+      "underlyingValue": 25000.0
+     }
+    },
+    {
+     "strikePrice": 25400,
+     "expiryDate": "27-10-2026",
+     "PE": {
+      "lastPrice": 519.2,
+      "buyPrice1": 518.7,
+      "sellPrice1": 519.7,
+      "buyQuantity1": 620,
+      "sellQuantity1": 480,
+      "totalTradedVolume": 2180,
+      "openInterest": 6240,
+      "changeinOpenInterest": 260,
+      "impliedVolatility": 13.6,
+      "optionType": null,
+      "identifier": "OPTIDX25400PE27OCT",
+      "underlyingValue": 25000.0
+     },
+     "CE": {
+      "lastPrice": 253.55,
+      "buyPrice1": 253.05,
+      "sellPrice1": 254.05,
+      "buyQuantity1": 640,
+      "sellQuantity1": 460,
+      "totalTradedVolume": 2840,
+      "openInterest": 2620,
+      "changeinOpenInterest": 95,
+      "impliedVolatility": 13.6,
+      "optionType": null,
+      "identifier": "OPTIDX25400CE27OCT",
+      "underlyingValue": 25000.0
+     }
+    }
+   ]
+  }
+ },
+ "bank_nifty": {
+  "_comment": "NIFTY BANK lists ONLY monthlies, so the front expiry is itself a monthly. This is the case that breaks a naive 'front and next weekly' rule.",
+  "expiry_label": "27-Oct-2026",
+  "records": {
+   "timestamp": "29-Sep-2026 15:40:00",
+   "underlyingValue": 55000.0,
+   "expiryDates": [
+    "27-Oct-2026",
+    "23-Nov-2026",
+    "29-Dec-2026",
+    "30-Mar-2027",
+    "29-Jun-2027"
+   ],
+   "strikePrices": [
+    "40000",
+    "46000",
+    "52000",
+    "54000",
+    "56000",
+    "58000",
+    "60000"
+   ],
+   "data": [
+    {
+     "strikePrice": 54000,
+     "expiryDate": "27-10-2026",
+     "PE": {
+      "lastPrice": 261.75,
+      "buyPrice1": 261.25,
+      "sellPrice1": 262.25,
+      "buyQuantity1": 240,
+      "sellQuantity1": 190,
+      "totalTradedVolume": 820,
+      "openInterest": 2140,
+      "changeinOpenInterest": 120,
+      "impliedVolatility": 12.4,
+      "optionType": null,
+      "identifier": "BANKNIFTY54000PE",
+      "underlyingValue": 55000.0
+     },
+     "CE": {
+      "lastPrice": 1547.4,
+      "buyPrice1": 1546.9,
+      "sellPrice1": 1547.9,
+      "buyQuantity1": 420,
+      "sellQuantity1": 320,
+      "totalTradedVolume": 1140,
+      "openInterest": 1640,
+      "changeinOpenInterest": 85,
+      "impliedVolatility": 12.4,
+      "optionType": null,
+      "identifier": "BANKNIFTY54000CE",
+      "underlyingValue": 55000.0
+     }
+    },
+    {
+     "strikePrice": 54500,
+     "expiryDate": "27-10-2026",
+     "PE": {
+      "lastPrice": 418.1,
+      "buyPrice1": 417.6,
+      "sellPrice1": 418.6,
+      "buyQuantity1": 280,
+      "sellQuantity1": 220,
+      "totalTradedVolume": 940,
+      "openInterest": 2620,
+      "changeinOpenInterest": 145,
+      "impliedVolatility": 12.6,
+      "optionType": null,
+      "identifier": "BANKNIFTY54500PE",
+      "underlyingValue": 55000.0
+     },
+     "CE": {
+      "lastPrice": 1206.4,
+      "buyPrice1": 1205.9,
+      "sellPrice1": 1206.9,
+      "buyQuantity1": 460,
+      "sellQuantity1": 350,
+      "totalTradedVolume": 1280,
+      "openInterest": 1880,
+      "changeinOpenInterest": 100,
+      "impliedVolatility": 12.6,
+      "optionType": null,
+      "identifier": "BANKNIFTY54500CE",
+      "underlyingValue": 55000.0
+     }
+    },
+    {
+     "strikePrice": 55000,
+     "expiryDate": "27-10-2026",
+     "PE": {
+      "lastPrice": 625.65,
+      "buyPrice1": 625.15,
+      "sellPrice1": 626.15,
+      "buyQuantity1": 320,
+      "sellQuantity1": 250,
+      "totalTradedVolume": 1120,
+      "openInterest": 3240,
+      "changeinOpenInterest": 180,
+      "impliedVolatility": 12.8,
+      "optionType": null,
+      "identifier": "BANKNIFTY55000PE",
+      "underlyingValue": 55000.0
+     },
+     "CE": {
+      "lastPrice": 916.6,
+      "buyPrice1": 916.1,
+      "sellPrice1": 917.1,
+      "buyQuantity1": 520,
+      "sellQuantity1": 400,
+      "totalTradedVolume": 1640,
+      "openInterest": 2240,
+      "changeinOpenInterest": 125,
+      "impliedVolatility": 12.8,
+      "optionType": null,
+      "identifier": "BANKNIFTY55000CE",
+      "underlyingValue": 55000.0
+     }
+    },
+    {
+     "strikePrice": 55500,
+     "expiryDate": "27-10-2026",
+     "PE": {
+      "lastPrice": 885.25,
+      "buyPrice1": 884.75,
+      "sellPrice1": 885.75,
+      "buyQuantity1": 260,
+      "sellQuantity1": 200,
+      "totalTradedVolume": 820,
+      "openInterest": 2480,
+      "changeinOpenInterest": 135,
+      "impliedVolatility": 13.0,
+      "optionType": null,
+      "identifier": "BANKNIFTY55500PE",
+      "underlyingValue": 55000.0
+     },
+     "CE": {
+      "lastPrice": 678.85,
+      "buyPrice1": 678.35,
+      "sellPrice1": 679.35,
+      "buyQuantity1": 440,
+      "sellQuantity1": 330,
+      "totalTradedVolume": 1420,
+      "openInterest": 1960,
+      "changeinOpenInterest": 110,
+      "impliedVolatility": 13.0,
+      "optionType": null,
+      "identifier": "BANKNIFTY55500CE",
+      "underlyingValue": 55000.0
+     }
+    },
+    {
+     "strikePrice": 56000,
+     "expiryDate": "27-10-2026",
+     "PE": {
+      "lastPrice": 1194.3,
+      "buyPrice1": 1193.8,
+      "sellPrice1": 1194.8,
+      "buyQuantity1": 220,
+      "sellQuantity1": 170,
+      "totalTradedVolume": 640,
+      "openInterest": 1840,
+      "changeinOpenInterest": 95,
+      "impliedVolatility": 13.2,
+      "optionType": null,
+      "identifier": "BANKNIFTY56000PE",
+      "underlyingValue": 55000.0
+     },
+     "CE": {
+      "lastPrice": 490.5,
+      "buyPrice1": 490.0,
+      "sellPrice1": 491.0,
+      "buyQuantity1": 360,
+      "sellQuantity1": 270,
+      "totalDradedVolume": 0,
+      "totalTradedVolume": 1080,
+      "openInterest": 1520,
+      "changeinOpenInterest": 80,
+      "impliedVolatility": 13.2,
+      "optionType": null,
+      "identifier": "BANKNIFTY56000CE",
+      "underlyingValue": 55000.0
+     }
+    }
+   ]
+  }
+ }
+}
