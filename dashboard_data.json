@@ -182040,8 +182040,8 @@
     }
   },
   "2026-08-18": {
-    "fii": "buying",
-    "fii_value": 1651.53,
+    "fii": "selling",
+    "fii_value": null,
     "signals": {
       "close": 24154.9,
       "high": 24269.65,
@@ -183271,7 +183271,7 @@
   },
   "2026-09-30": {
     "fii": "selling",
-    "fii_value": null,
+    "fii_value": -10148.41,
     "signals": {
       "close": 22620.45,
       "high": 22809.35,
@@ -183304,34 +183304,2531 @@
       "z_ema_diff": -1.371,
       "z_price_ema": -1.541,
       "z_atr": -0.598,
-      "z_vol": -3.542,
+      "z_vol": 1.063,
       "z_vix": 0.0,
       "z_bn_rel": 0.0,
       "analogue_match": "Similar to 21 Sep 2007 (Next day went UP)"
     }
   },
   "_meta": {
-    "val_edge": 0.0317,
-    "val_win_rate": 50.8,
-    "val_trades": 65,
-    "oos_edge": -0.0313,
-    "oos_win_rate": 31.2,
-    "oos_trades": 64,
+    "symbol": "nifty",
+    "val_edge": 8.2344,
+    "val_win_rate": 55.1,
+    "val_trades": 136,
+    "oos_edge": -2.2783,
+    "oos_win_rate": 35.7,
+    "oos_trades": 70,
     "stability": {
-      "chk-rsi": 79.4,
-      "chk-stochrsi": 86.5,
-      "chk-ema59": 19.0,
-      "chk-ema20": 88.1,
-      "chk-deltaoi": 48.4
+      "chk-rsi": 86.5,
+      "chk-stochrsi": 100.0,
+      "chk-ema59": 21.4,
+      "chk-ema20": 100.0,
+      "chk-deltaoi": 74.6
     },
     "val_window": 252,
     "oos_window": 126,
+    "val_period": {
+      "start": "2025-03-19",
+      "end": "2026-03-25"
+    },
+    "oos_period": {
+      "start": "2026-03-27",
+      "end": "2026-09-29"
+    },
+    "oos_predictions": [
+      {
+        "date": "2026-03-27",
+        "direction": "FLAT",
+        "prob_up": 54.0,
+        "expected_return": 0.0658,
+        "actual_return": -2.1394,
+        "correct": null,
+        "features": [
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-03-30",
+        "direction": "FLAT",
+        "prob_up": 50.0,
+        "expected_return": -0.2823,
+        "actual_return": 1.5583,
+        "correct": null,
+        "features": [
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-04-01",
+        "direction": "FLAT",
+        "prob_up": 48.0,
+        "expected_return": -0.1322,
+        "actual_return": 0.1486,
+        "correct": null,
+        "features": [
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-04-02",
+        "direction": "SHORT",
+        "prob_up": 40.0,
+        "expected_return": -0.553,
+        "actual_return": 1.1234,
+        "correct": false,
+        "features": [
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-04-06",
+        "direction": "FLAT",
+        "prob_up": 52.0,
+        "expected_return": -0.0093,
+        "actual_return": 0.6766,
+        "correct": null,
+        "features": [
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-04-07",
+        "direction": "LONG",
+        "prob_up": 58.0,
+        "expected_return": 0.3822,
+        "actual_return": 3.7784,
+        "correct": true,
+        "features": [
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-04-08",
+        "direction": "LONG",
+        "prob_up": 58.0,
+        "expected_return": 0.0068,
+        "actual_return": -0.9261,
+        "correct": false,
+        "features": [
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-04-09",
+        "direction": "LONG",
+        "prob_up": 58.0,
+        "expected_return": -0.0337,
+        "actual_return": 1.1588,
+        "correct": true,
+        "features": [
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-04-10",
+        "direction": "LONG",
+        "prob_up": 56.0,
+        "expected_return": 0.1818,
+        "actual_return": -0.8646,
+        "correct": false,
+        "features": [
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-04-13",
+        "direction": "LONG",
+        "prob_up": 68.0,
+        "expected_return": 0.1069,
+        "actual_return": 1.6301,
+        "correct": true,
+        "features": [
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-04-15",
+        "direction": "LONG",
+        "prob_up": 62.0,
+        "expected_return": 0.2967,
+        "actual_return": -0.1426,
+        "correct": false,
+        "features": [
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-04-16",
+        "direction": "FLAT",
+        "prob_up": 54.0,
+        "expected_return": 0.0036,
+        "actual_return": 0.648,
+        "correct": null,
+        "features": [
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-04-17",
+        "direction": "FLAT",
+        "prob_up": 54.0,
+        "expected_return": 0.3399,
+        "actual_return": 0.0464,
+        "correct": null,
+        "features": [
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-04-20",
+        "direction": "SHORT",
+        "prob_up": 44.0,
+        "expected_return": -0.0123,
+        "actual_return": 0.8691,
+        "correct": false,
+        "features": [
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-04-21",
+        "direction": "LONG",
+        "prob_up": 60.0,
+        "expected_return": 0.0614,
+        "actual_return": -0.8077,
+        "correct": false,
+        "features": [
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-04-22",
+        "direction": "FLAT",
+        "prob_up": 48.0,
+        "expected_return": -0.0287,
+        "actual_return": -0.8411,
+        "correct": null,
+        "features": [
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-04-23",
+        "direction": "LONG",
+        "prob_up": 58.0,
+        "expected_return": 0.0569,
+        "actual_return": -1.1381,
+        "correct": false,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-04-24",
+        "direction": "FLAT",
+        "prob_up": 54.0,
+        "expected_return": 0.0039,
+        "actual_return": 0.8149,
+        "correct": null,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-04-27",
+        "direction": "LONG",
+        "prob_up": 56.0,
+        "expected_return": 0.1426,
+        "actual_return": -0.4026,
+        "correct": false,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-04-28",
+        "direction": "SHORT",
+        "prob_up": 42.0,
+        "expected_return": -0.1472,
+        "actual_return": 0.7583,
+        "correct": false,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-04-29",
+        "direction": "SHORT",
+        "prob_up": 44.0,
+        "expected_return": -0.5222,
+        "actual_return": -0.7449,
+        "correct": true,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-04-30",
+        "direction": "FLAT",
+        "prob_up": 52.0,
+        "expected_return": 0.12,
+        "actual_return": 0.5073,
+        "correct": null,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-05-04",
+        "direction": "SHORT",
+        "prob_up": 40.0,
+        "expected_return": -0.1376,
+        "actual_return": -0.3586,
+        "correct": true,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-05-05",
+        "direction": "FLAT",
+        "prob_up": 52.0,
+        "expected_return": 0.0208,
+        "actual_return": 1.2406,
+        "correct": null,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-05-06",
+        "direction": "FLAT",
+        "prob_up": 50.0,
+        "expected_return": -0.0837,
+        "actual_return": -0.0177,
+        "correct": null,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-05-07",
+        "direction": "LONG",
+        "prob_up": 60.0,
+        "expected_return": -0.0191,
+        "actual_return": -0.6187,
+        "correct": false,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-05-08",
+        "direction": "LONG",
+        "prob_up": 62.0,
+        "expected_return": 0.0031,
+        "actual_return": -1.4903,
+        "correct": false,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-05-11",
+        "direction": "FLAT",
+        "prob_up": 48.0,
+        "expected_return": -0.066,
+        "actual_return": -1.832,
+        "correct": null,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-05-12",
+        "direction": "SHORT",
+        "prob_up": 44.0,
+        "expected_return": -0.213,
+        "actual_return": 0.1414,
+        "correct": false,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-05-13",
+        "direction": "FLAT",
+        "prob_up": 50.0,
+        "expected_return": -0.0025,
+        "actual_return": 1.1831,
+        "correct": null,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-05-14",
+        "direction": "FLAT",
+        "prob_up": 52.0,
+        "expected_return": 0.1428,
+        "actual_return": -0.1946,
+        "correct": null,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-05-15",
+        "direction": "FLAT",
+        "prob_up": 54.0,
+        "expected_return": 0.0333,
+        "actual_return": 0.0273,
+        "correct": null,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-05-18",
+        "direction": "LONG",
+        "prob_up": 58.0,
+        "expected_return": 0.2848,
+        "actual_return": -0.1351,
+        "correct": false,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-05-19",
+        "direction": "LONG",
+        "prob_up": 60.0,
+        "expected_return": 0.3033,
+        "actual_return": 0.1736,
+        "correct": true,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-05-20",
+        "direction": "LONG",
+        "prob_up": 56.0,
+        "expected_return": 0.0304,
+        "actual_return": -0.0182,
+        "correct": false,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-05-21",
+        "direction": "LONG",
+        "prob_up": 56.0,
+        "expected_return": 0.0598,
+        "actual_return": 0.2731,
+        "correct": true,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-05-22",
+        "direction": "FLAT",
+        "prob_up": 48.0,
+        "expected_return": -0.019,
+        "actual_return": 1.3171,
+        "correct": null,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-05-25",
+        "direction": "LONG",
+        "prob_up": 64.0,
+        "expected_return": 0.1435,
+        "actual_return": -0.491,
+        "correct": false,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-05-26",
+        "direction": "SHORT",
+        "prob_up": 42.0,
+        "expected_return": -0.2024,
+        "actual_return": -0.0274,
+        "correct": true,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-05-27",
+        "direction": "FLAT",
+        "prob_up": 46.0,
+        "expected_return": -0.0475,
+        "actual_return": -1.5033,
+        "correct": null,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-05-29",
+        "direction": "LONG",
+        "prob_up": 62.0,
+        "expected_return": 0.2938,
+        "actual_return": -0.7013,
+        "correct": false,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-06-01",
+        "direction": "FLAT",
+        "prob_up": 48.0,
+        "expected_return": -0.1767,
+        "actual_return": 0.4317,
+        "correct": null,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-06-02",
+        "direction": "FLAT",
+        "prob_up": 50.0,
+        "expected_return": -0.0729,
+        "actual_return": -0.3319,
+        "correct": null,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-06-03",
+        "direction": "FLAT",
+        "prob_up": 54.0,
+        "expected_return": -0.0297,
+        "actual_return": 0.0468,
+        "correct": null,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-06-04",
+        "direction": "FLAT",
+        "prob_up": 46.0,
+        "expected_return": -0.195,
+        "actual_return": -0.2129,
+        "correct": null,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-06-05",
+        "direction": "LONG",
+        "prob_up": 56.0,
+        "expected_return": -0.0064,
+        "actual_return": -1.0429,
+        "correct": false,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-06-08",
+        "direction": "SHORT",
+        "prob_up": 44.0,
+        "expected_return": -0.0188,
+        "actual_return": 0.5151,
+        "correct": false,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-06-09",
+        "direction": "SHORT",
+        "prob_up": 44.0,
+        "expected_return": -0.1157,
+        "actual_return": -0.1168,
+        "correct": true,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-06-10",
+        "direction": "LONG",
+        "prob_up": 56.0,
+        "expected_return": -0.0562,
+        "actual_return": -0.2298,
+        "correct": false,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-06-11",
+        "direction": "FLAT",
+        "prob_up": 54.0,
+        "expected_return": -0.0264,
+        "actual_return": 1.9917,
+        "correct": null,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-06-12",
+        "direction": "FLAT",
+        "prob_up": 50.0,
+        "expected_return": -0.0346,
+        "actual_return": 0.9779,
+        "correct": null,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-06-15",
+        "direction": "LONG",
+        "prob_up": 60.0,
+        "expected_return": 0.1398,
+        "actual_return": 0.567,
+        "correct": true,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-06-16",
+        "direction": "SHORT",
+        "prob_up": 40.0,
+        "expected_return": -0.1011,
+        "actual_return": 0.4025,
+        "correct": false,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-06-17",
+        "direction": "SHORT",
+        "prob_up": 44.0,
+        "expected_return": -0.0946,
+        "actual_return": 0.3417,
+        "correct": false,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-06-18",
+        "direction": "FLAT",
+        "prob_up": 50.0,
+        "expected_return": 0.0342,
+        "actual_return": -0.6409,
+        "correct": null,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-06-19",
+        "direction": "FLAT",
+        "prob_up": 54.0,
+        "expected_return": 0.053,
+        "actual_return": 0.374,
+        "correct": null,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-06-22",
+        "direction": "SHORT",
+        "prob_up": 44.0,
+        "expected_return": -0.0738,
+        "actual_return": -1.1567,
+        "correct": true,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-06-23",
+        "direction": "FLAT",
+        "prob_up": 46.0,
+        "expected_return": -0.1898,
+        "actual_return": 0.8292,
+        "correct": null,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-06-24",
+        "direction": "LONG",
+        "prob_up": 56.0,
+        "expected_return": 0.2578,
+        "actual_return": 0.143,
+        "correct": true,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-06-25",
+        "direction": "LONG",
+        "prob_up": 64.0,
+        "expected_return": 0.3634,
+        "actual_return": -0.4562,
+        "correct": false,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-06-29",
+        "direction": "LONG",
+        "prob_up": 56.0,
+        "expected_return": -0.0063,
+        "actual_return": -0.3362,
+        "correct": false,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-06-30",
+        "direction": "FLAT",
+        "prob_up": 48.0,
+        "expected_return": -0.1964,
+        "actual_return": 0.587,
+        "correct": null,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-07-01",
+        "direction": "FLAT",
+        "prob_up": 54.0,
+        "expected_return": 0.0987,
+        "actual_return": 0.7075,
+        "correct": null,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-07-02",
+        "direction": "LONG",
+        "prob_up": 68.0,
+        "expected_return": 0.2356,
+        "actual_return": 0.3936,
+        "correct": true,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-07-03",
+        "direction": "FLAT",
+        "prob_up": 50.0,
+        "expected_return": -0.0561,
+        "actual_return": 0.6572,
+        "correct": null,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-07-06",
+        "direction": "LONG",
+        "prob_up": 60.0,
+        "expected_return": -0.0382,
+        "actual_return": -0.1296,
+        "correct": false,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-07-07",
+        "direction": "FLAT",
+        "prob_up": 48.0,
+        "expected_return": -0.2746,
+        "actual_return": -2.1175,
+        "correct": null,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-07-08",
+        "direction": "SHORT",
+        "prob_up": 32.0,
+        "expected_return": -0.3993,
+        "actual_return": 0.3381,
+        "correct": false,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-07-09",
+        "direction": "SHORT",
+        "prob_up": 44.0,
+        "expected_return": -0.2907,
+        "actual_return": 1.0187,
+        "correct": false,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-07-10",
+        "direction": "LONG",
+        "prob_up": 62.0,
+        "expected_return": 0.1767,
+        "actual_return": 0.0169,
+        "correct": true,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-07-13",
+        "direction": "LONG",
+        "prob_up": 56.0,
+        "expected_return": 0.0757,
+        "actual_return": -0.6565,
+        "correct": false,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-07-14",
+        "direction": "FLAT",
+        "prob_up": 52.0,
+        "expected_return": -0.0878,
+        "actual_return": 0.11,
+        "correct": null,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-07-15",
+        "direction": "FLAT",
+        "prob_up": 52.0,
+        "expected_return": -0.2252,
+        "actual_return": -0.0239,
+        "correct": null,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-07-16",
+        "direction": "SHORT",
+        "prob_up": 42.0,
+        "expected_return": -0.1724,
+        "actual_return": 1.0865,
+        "correct": false,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-07-17",
+        "direction": "LONG",
+        "prob_up": 60.0,
+        "expected_return": 0.283,
+        "actual_return": -0.3937,
+        "correct": false,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-07-20",
+        "direction": "LONG",
+        "prob_up": 68.0,
+        "expected_return": 0.163,
+        "actual_return": -0.2096,
+        "correct": false,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-07-21",
+        "direction": "LONG",
+        "prob_up": 58.0,
+        "expected_return": 0.0502,
+        "actual_return": -0.7915,
+        "correct": false,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-07-22",
+        "direction": "FLAT",
+        "prob_up": 46.0,
+        "expected_return": 0.0096,
+        "actual_return": -0.5278,
+        "correct": null,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-07-23",
+        "direction": "LONG",
+        "prob_up": 56.0,
+        "expected_return": 0.1963,
+        "actual_return": -0.428,
+        "correct": false,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-07-24",
+        "direction": "LONG",
+        "prob_up": 56.0,
+        "expected_return": 0.1368,
+        "actual_return": 0.9614,
+        "correct": true,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-07-27",
+        "direction": "LONG",
+        "prob_up": 60.0,
+        "expected_return": 0.0689,
+        "actual_return": -0.0442,
+        "correct": false,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-07-28",
+        "direction": "SHORT",
+        "prob_up": 36.0,
+        "expected_return": -0.2689,
+        "actual_return": 1.1042,
+        "correct": false,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-07-29",
+        "direction": "LONG",
+        "prob_up": 70.0,
+        "expected_return": 0.3249,
+        "actual_return": 0.2761,
+        "correct": true,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-07-30",
+        "direction": "FLAT",
+        "prob_up": 50.0,
+        "expected_return": 0.156,
+        "actual_return": 0.2733,
+        "correct": null,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-07-31",
+        "direction": "FLAT",
+        "prob_up": 52.0,
+        "expected_return": 0.0179,
+        "actual_return": 1.6023,
+        "correct": null,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-08-03",
+        "direction": "LONG",
+        "prob_up": 64.0,
+        "expected_return": 0.1989,
+        "actual_return": -0.6434,
+        "correct": false,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-08-04",
+        "direction": "SHORT",
+        "prob_up": 40.0,
+        "expected_return": -0.4203,
+        "actual_return": 0.0396,
+        "correct": false,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-08-05",
+        "direction": "FLAT",
+        "prob_up": 48.0,
+        "expected_return": -0.1331,
+        "actual_return": 0.0461,
+        "correct": null,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-08-06",
+        "direction": "LONG",
+        "prob_up": 62.0,
+        "expected_return": 0.2657,
+        "actual_return": -0.2653,
+        "correct": false,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-08-07",
+        "direction": "FLAT",
+        "prob_up": 46.0,
+        "expected_return": 0.0826,
+        "actual_return": 0.0535,
+        "correct": null,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-08-10",
+        "direction": "FLAT",
+        "prob_up": 46.0,
+        "expected_return": 0.0904,
+        "actual_return": -0.456,
+        "correct": null,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-08-11",
+        "direction": "LONG",
+        "prob_up": 56.0,
+        "expected_return": -0.065,
+        "actual_return": -0.1461,
+        "correct": false,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-08-12",
+        "direction": "LONG",
+        "prob_up": 62.0,
+        "expected_return": 0.205,
+        "actual_return": -0.1641,
+        "correct": false,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-08-13",
+        "direction": "LONG",
+        "prob_up": 62.0,
+        "expected_return": 0.1698,
+        "actual_return": -0.1224,
+        "correct": false,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-08-14",
+        "direction": "SHORT",
+        "prob_up": 44.0,
+        "expected_return": -0.1352,
+        "actual_return": -0.3216,
+        "correct": true,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-08-17",
+        "direction": "FLAT",
+        "prob_up": 52.0,
+        "expected_return": 0.1777,
+        "actual_return": -0.5466,
+        "correct": null,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-08-18",
+        "direction": "LONG",
+        "prob_up": 62.0,
+        "expected_return": 0.3438,
+        "actual_return": -0.3171,
+        "correct": false,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-08-19",
+        "direction": "FLAT",
+        "prob_up": 52.0,
+        "expected_return": 0.0507,
+        "actual_return": 0.6377,
+        "correct": null,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_price_ema"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-08-20",
+        "direction": "LONG",
+        "prob_up": 64.0,
+        "expected_return": 0.1608,
+        "actual_return": 0.0832,
+        "correct": true,
+        "features": [
+          "z_stochrsi",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-08-21",
+        "direction": "FLAT",
+        "prob_up": 54.0,
+        "expected_return": 0.0269,
+        "actual_return": -0.1359,
+        "correct": null,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_ema_diff",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-08-24",
+        "direction": "FLAT",
+        "prob_up": 46.0,
+        "expected_return": 0.0318,
+        "actual_return": 0.4769,
+        "correct": null,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_ema_diff",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-08-25",
+        "direction": "SHORT",
+        "prob_up": 36.0,
+        "expected_return": -0.1555,
+        "actual_return": -0.5211,
+        "correct": true,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_ema_diff",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-08-26",
+        "direction": "FLAT",
+        "prob_up": 46.0,
+        "expected_return": -0.0338,
+        "actual_return": -0.4829,
+        "correct": null,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_ema_diff",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-08-27",
+        "direction": "SHORT",
+        "prob_up": 44.0,
+        "expected_return": -0.008,
+        "actual_return": 0.352,
+        "correct": false,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_ema_diff",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-08-28",
+        "direction": "SHORT",
+        "prob_up": 44.0,
+        "expected_return": -0.2236,
+        "actual_return": -0.394,
+        "correct": true,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_ema_diff",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-08-31",
+        "direction": "LONG",
+        "prob_up": 60.0,
+        "expected_return": 0.2936,
+        "actual_return": -0.1022,
+        "correct": false,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_ema_diff",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-09-01",
+        "direction": "SHORT",
+        "prob_up": 42.0,
+        "expected_return": -0.266,
+        "actual_return": -0.5876,
+        "correct": true,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_ema_diff",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-09-02",
+        "direction": "FLAT",
+        "prob_up": 46.0,
+        "expected_return": 0.0012,
+        "actual_return": -0.1714,
+        "correct": null,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_ema_diff",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-09-03",
+        "direction": "SHORT",
+        "prob_up": 44.0,
+        "expected_return": -0.0634,
+        "actual_return": 0.1016,
+        "correct": false,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_ema_diff",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-09-04",
+        "direction": "FLAT",
+        "prob_up": 52.0,
+        "expected_return": 0.1122,
+        "actual_return": -0.4961,
+        "correct": null,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_ema_diff",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-09-07",
+        "direction": "FLAT",
+        "prob_up": 50.0,
+        "expected_return": 0.0811,
+        "actual_return": -0.6058,
+        "correct": null,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_ema_diff",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-09-08",
+        "direction": "SHORT",
+        "prob_up": 40.0,
+        "expected_return": -0.0711,
+        "actual_return": -0.8614,
+        "correct": true,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_ema_diff",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-09-09",
+        "direction": "FLAT",
+        "prob_up": 50.0,
+        "expected_return": 0.0014,
+        "actual_return": 0.1976,
+        "correct": null,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_ema_diff",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-09-10",
+        "direction": "FLAT",
+        "prob_up": 46.0,
+        "expected_return": -0.1732,
+        "actual_return": -0.3395,
+        "correct": null,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_ema_diff",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-09-11",
+        "direction": "SHORT",
+        "prob_up": 44.0,
+        "expected_return": -0.2208,
+        "actual_return": -1.1945,
+        "correct": true,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_ema_diff",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-09-15",
+        "direction": "LONG",
+        "prob_up": 62.0,
+        "expected_return": 0.2271,
+        "actual_return": 0.4282,
+        "correct": true,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_ema_diff",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-09-16",
+        "direction": "FLAT",
+        "prob_up": 46.0,
+        "expected_return": -0.1457,
+        "actual_return": 0.2283,
+        "correct": null,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_ema_diff",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-09-17",
+        "direction": "FLAT",
+        "prob_up": 50.0,
+        "expected_return": -0.1259,
+        "actual_return": 0.3257,
+        "correct": null,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_ema_diff",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-09-18",
+        "direction": "FLAT",
+        "prob_up": 54.0,
+        "expected_return": -0.0522,
+        "actual_return": 0.2908,
+        "correct": null,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_ema_diff",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-09-21",
+        "direction": "FLAT",
+        "prob_up": 54.0,
+        "expected_return": -0.0083,
+        "actual_return": -0.3643,
+        "correct": null,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_ema_diff",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-09-22",
+        "direction": "FLAT",
+        "prob_up": 50.0,
+        "expected_return": -0.0809,
+        "actual_return": 0.505,
+        "correct": null,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_ema_diff",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-09-23",
+        "direction": "FLAT",
+        "prob_up": 54.0,
+        "expected_return": 0.1911,
+        "actual_return": -1.6365,
+        "correct": null,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_ema_diff",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-09-24",
+        "direction": "FLAT",
+        "prob_up": 46.0,
+        "expected_return": -0.1295,
+        "actual_return": 0.3356,
+        "correct": null,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_ema_diff",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-09-25",
+        "direction": "FLAT",
+        "prob_up": 52.0,
+        "expected_return": -0.0943,
+        "actual_return": -1.5568,
+        "correct": null,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_ema_diff",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-09-28",
+        "direction": "SHORT",
+        "prob_up": 40.0,
+        "expected_return": -0.3257,
+        "actual_return": -0.2812,
+        "correct": true,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_ema_diff",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      },
+      {
+        "date": "2026-09-29",
+        "direction": "LONG",
+        "prob_up": 62.0,
+        "expected_return": 0.3768,
+        "actual_return": -0.4215,
+        "correct": false,
+        "features": [
+          "z_rsi",
+          "z_stochrsi",
+          "z_ema_diff",
+          "z_price_ema",
+          "z_vol"
+        ],
+        "designation": "OOS"
+      }
+    ],
     "wfo_optimal_features": [],
     "wfo_candidate_features": [
-      "chk-rsi",
-      "chk-ema59"
+      "chk-stochrsi",
+      "chk-ema20",
+      "chk-deltaoi"
     ],
     "status": "NO SIGNAL",
     "reason": "OOS edge <= 0"
+  },
+  "_options": {
+    "source": "live",
+    "fetched_at": "2026-10-01",
+    "underlying": 22620.45,
+    "risk_free_rate": 0.0717,
+    "risk_free_rate_configured": true,
+    "risk_free_rate_source": "India 10Y Government Security yield",
+    "risk_free_rate_as_of": "2026-09-29",
+    "risk_free_rate_type": "proxy",
+    "risk_free_rate_refresh": "manual",
+    "candidates": [
+      {
+        "expiry": "2026-10-06",
+        "dte": 5,
+        "is_monthly": false,
+        "underlying": 22620.45,
+        "legs": [
+          {
+            "strike": 22450.0,
+            "expiry": "2026-10-06",
+            "dte": 5,
+            "leg": "CE",
+            "ltp": 258.95,
+            "iv": 0.1286,
+            "bid": 256.15,
+            "ask": 258.15,
+            "bid_qty": 130,
+            "ask_qty": 130,
+            "volume": 27134,
+            "oi": 4005,
+            "change_oi": 1124,
+            "greeks": {
+              "delta": 0.7174578693596019,
+              "gamma": 0.0009930211715517793,
+              "theta": -14.649581925182947,
+              "vega": 8.951155401360133
+            }
+          },
+          {
+            "strike": 22450.0,
+            "expiry": "2026-10-06",
+            "dte": 5,
+            "leg": "PE",
+            "ltp": 65.95,
+            "iv": 0.1378,
+            "bid": 65.95,
+            "ask": 66.55,
+            "bid_qty": 65,
+            "ask_qty": 130,
+            "volume": 754562,
+            "oi": 15697,
+            "change_oi": 6791,
+            "greeks": {
+              "delta": -0.295310072451898,
+              "gamma": 0.0009462015525260346,
+              "theta": -11.268257165125926,
+              "vega": 9.13929076141955
+            }
+          },
+          {
+            "strike": 22500.0,
+            "expiry": "2026-10-06",
+            "dte": 5,
+            "leg": "CE",
+            "ltp": 220.65,
+            "iv": 0.12480000000000001,
+            "bid": 220.1,
+            "ask": 220.65,
+            "bid_qty": 195,
+            "ask_qty": 260,
+            "volume": 302227,
+            "oi": 35281,
+            "change_oi": 24564,
+            "greeks": {
+              "delta": 0.6700552922676409,
+              "gamma": 0.0010959818961012151,
+              "theta": -14.900200471762084,
+              "vega": 9.587328012507983
+            }
+          },
+          {
+            "strike": 22500.0,
+            "expiry": "2026-10-06",
+            "dte": 5,
+            "leg": "PE",
+            "ltp": 80.75,
+            "iv": 0.1367,
+            "bid": 79.95,
+            "ask": 80.7,
+            "bid_qty": 715,
+            "ask_qty": 845,
+            "volume": 2063409,
+            "oi": 101975,
+            "change_oi": 39507,
+            "greeks": {
+              "delta": -0.3434412177095312,
+              "gamma": 0.0010162941383746033,
+              "theta": -11.769237668868778,
+              "vega": 9.73795034745866
+            }
+          },
+          {
+            "strike": 22550.0,
+            "expiry": "2026-10-06",
+            "dte": 5,
+            "leg": "CE",
+            "ltp": 196.4,
+            "iv": 0.1328,
+            "bid": 189,
+            "ask": 190,
+            "bid_qty": 65,
+            "ask_qty": 260,
+            "volume": 165054,
+            "oi": 8310,
+            "change_oi": 6019,
+            "greeks": {
+              "delta": 0.6070546776601088,
+              "gamma": 0.0010935735556431968,
+              "theta": -16.17827231232885,
+              "vega": 10.17948238747678
+            }
+          },
+          {
+            "strike": 22550.0,
+            "expiry": "2026-10-06",
+            "dte": 5,
+            "leg": "PE",
+            "ltp": 98.0,
+            "iv": 0.13570000000000002,
+            "bid": 97.9,
+            "ask": 98,
+            "bid_qty": 390,
+            "ask_qty": 390,
+            "volume": 1211382,
+            "oi": 22439,
+            "change_oi": 11778,
+            "greeks": {
+              "delta": -0.3950498717308282,
+              "gamma": 0.0010717784247619995,
+              "theta": -12.058541748556443,
+              "vega": 10.194465922632837
+            }
+          },
+          {
+            "strike": 22600.0,
+            "expiry": "2026-10-06",
+            "dte": 5,
+            "leg": "CE",
+            "ltp": 159.8,
+            "iv": 0.12560000000000002,
+            "bid": 159.2,
+            "ask": 159.8,
+            "bid_qty": 390,
+            "ask_qty": 325,
+            "volume": 947018,
+            "oi": 48060,
+            "change_oi": 18094,
+            "greeks": {
+              "delta": 0.5539670211035346,
+              "gamma": 0.0011887280761961896,
+              "theta": -15.575548981554414,
+              "vega": 10.465302356515542
+            }
+          },
+          {
+            "strike": 22600.0,
+            "expiry": "2026-10-06",
+            "dte": 5,
+            "leg": "PE",
+            "ltp": 118.5,
+            "iv": 0.1353,
+            "bid": 117.7,
+            "ask": 118.5,
+            "bid_qty": 520,
+            "ask_qty": 845,
+            "volume": 3038799,
+            "oi": 89075,
+            "change_oi": 18827,
+            "greeks": {
+              "delta": -0.4494475997966604,
+              "gamma": 0.0011047574543126657,
+              "theta": -12.154435431664611,
+              "vega": 10.477178854025588
+            }
+          },
+          {
+            "strike": 22650.0,
+            "expiry": "2026-10-06",
+            "dte": 5,
+            "leg": "CE",
+            "ltp": 133.2,
+            "iv": 0.12539999999999998,
+            "bid": 132.35,
+            "ask": 133.15,
+            "bid_qty": 260,
+            "ask_qty": 390,
+            "volume": 1003091,
+            "oi": 38825,
+            "change_oi": 30570,
+            "greeks": {
+              "delta": 0.4941401660462418,
+              "gamma": 0.0012015057851030503,
+              "theta": -15.413846243114044,
+              "vega": 10.560950893153649
+            }
+          },
+          {
+            "strike": 22650.0,
+            "expiry": "2026-10-06",
+            "dte": 5,
+            "leg": "PE",
+            "ltp": 141.3,
+            "iv": 0.13449999999999998,
+            "bid": 141.3,
+            "ask": 141.9,
+            "bid_qty": 650,
+            "ask_qty": 650,
+            "volume": 2445565,
+            "oi": 29774,
+            "change_oi": 11331,
+            "greeks": {
+              "delta": -0.5050529015377165,
+              "gamma": 0.0011202453099574577,
+              "theta": -11.932022700898646,
+              "vega": 10.561243095806494
+            }
+          },
+          {
+            "strike": 22700.0,
+            "expiry": "2026-10-06",
+            "dte": 5,
+            "leg": "CE",
+            "ltp": 109.4,
+            "iv": 0.1251,
+            "bid": 109.05,
+            "ask": 109.4,
+            "bid_qty": 975,
+            "ask_qty": 260,
+            "volume": 3308049,
+            "oi": 134380,
+            "change_oi": 79140,
+            "greeks": {
+              "delta": 0.4343303026576544,
+              "gamma": 0.0011881609758658508,
+              "theta": -14.942960930458723,
+              "vega": 10.418668368679409
+            }
+          },
+          {
+            "strike": 22700.0,
+            "expiry": "2026-10-06",
+            "dte": 5,
+            "leg": "PE",
+            "ltp": 168.05,
+            "iv": 0.1348,
+            "bid": 168,
+            "ask": 168.85,
+            "bid_qty": 585,
+            "ask_qty": 520,
+            "volume": 4527489,
+            "oi": 89000,
+            "change_oi": 17632,
+            "greeks": {
+              "delta": -0.5605510742944835,
+              "gamma": 0.0011049412026138455,
+              "theta": -11.54857623026306,
+              "vega": 10.440196701011999
+            }
+          },
+          {
+            "strike": 22750.0,
+            "expiry": "2026-10-06",
+            "dte": 5,
+            "leg": "CE",
+            "ltp": 87.55,
+            "iv": 0.12369999999999999,
+            "bid": 88.05,
+            "ask": 89,
+            "bid_qty": 325,
+            "ask_qty": 195,
+            "volume": 2297193,
+            "oi": 61275,
+            "change_oi": 49608,
+            "greeks": {
+              "delta": 0.3747243534374206,
+              "gamma": 0.0011575843563022899,
+              "theta": -14.06425457298481,
+              "vega": 10.036954819013989
+            }
+          },
+          {
+            "strike": 22750.0,
+            "expiry": "2026-10-06",
+            "dte": 5,
+            "leg": "PE",
+            "ltp": 196.55,
+            "iv": 0.1341,
+            "bid": 196.5,
+            "ask": 197.8,
+            "bid_qty": 260,
+            "ask_qty": 130,
+            "volume": 2399680,
+            "oi": 19613,
+            "change_oi": 967,
+            "greeks": {
+              "delta": -0.6154025580001778,
+              "gamma": 0.0010763290909443742,
+              "theta": -10.792719335841314,
+              "vega": 10.117040228171767
+            }
+          }
+        ]
+      },
+      {
+        "expiry": "2026-10-27",
+        "dte": 26,
+        "is_monthly": true,
+        "underlying": 22620.45,
+        "legs": [
+          {
+            "strike": 22450.0,
+            "expiry": "2026-10-27",
+            "dte": 26,
+            "leg": "CE",
+            "ltp": 464.4,
+            "iv": 0.11199999999999999,
+            "bid": 454.9,
+            "ask": 468,
+            "bid_qty": 65,
+            "ask_qty": 65,
+            "volume": 99,
+            "oi": 122,
+            "change_oi": 12,
+            "greeks": {
+              "delta": 0.6696114492180638,
+              "gamma": 0.0005358362969073269,
+              "theta": -7.601520881044566,
+              "vega": 21.874247195829057
+            }
+          },
+          {
+            "strike": 22450.0,
+            "expiry": "2026-10-27",
+            "dte": 26,
+            "leg": "PE",
+            "ltp": 209.35,
+            "iv": 0.1463,
+            "bid": 206.8,
+            "ask": 209.8,
+            "bid_qty": 390,
+            "ask_qty": 390,
+            "volume": 1720,
+            "oi": 1153,
+            "change_oi": 376,
+            "greeks": {
+              "delta": -0.36540967368999544,
+              "gamma": 0.00042571854571790555,
+              "theta": -4.718810827096204,
+              "vega": 22.70125463870233
+            }
+          },
+          {
+            "strike": 22500.0,
+            "expiry": "2026-10-27",
+            "dte": 26,
+            "leg": "CE",
+            "ltp": 429.85,
+            "iv": 0.1114,
+            "bid": 427.35,
+            "ask": 428.9,
+            "bid_qty": 65,
+            "ask_qty": 65,
+            "volume": 23118,
+            "oi": 15989,
+            "change_oi": 3558,
+            "greeks": {
+              "delta": 0.6428991032305105,
+              "gamma": 0.0005547028835699751,
+              "theta": -7.6031608606000765,
+              "vega": 22.52312144210275
+            }
+          },
+          {
+            "strike": 22500.0,
+            "expiry": "2026-10-27",
+            "dte": 26,
+            "leg": "PE",
+            "ltp": 226.0,
+            "iv": 0.14550000000000002,
+            "bid": 224.6,
+            "ask": 225.9,
+            "bid_qty": 65,
+            "ask_qty": 65,
+            "volume": 73219,
+            "oi": 51809,
+            "change_oi": 219,
+            "greeks": {
+              "delta": -0.38651077376655274,
+              "gamma": 0.0004356536445011975,
+              "theta": -4.699357177350824,
+              "vega": 23.104007080315437
+            }
+          },
+          {
+            "strike": 22550.0,
+            "expiry": "2026-10-27",
+            "dte": 26,
+            "leg": "CE",
+            "ltp": 395.4,
+            "iv": 0.1103,
+            "bid": 391.6,
+            "ask": 402.55,
+            "bid_qty": 65,
+            "ask_qty": 65,
+            "volume": 980,
+            "oi": 1663,
+            "change_oi": 308,
+            "greeks": {
+              "delta": 0.6156870808415321,
+              "gamma": 0.0005737222039180596,
+              "theta": -7.55614780286158,
+              "vega": 23.065354543328855
+            }
+          },
+          {
+            "strike": 22550.0,
+            "expiry": "2026-10-27",
+            "dte": 26,
+            "leg": "PE",
+            "ltp": 243.85,
+            "iv": 0.1448,
+            "bid": 241.7,
+            "ask": 244.45,
+            "bid_qty": 325,
+            "ask_qty": 325,
+            "volume": 2682,
+            "oi": 1309,
+            "change_oi": 247,
+            "greeks": {
+              "delta": -0.4081935707284935,
+              "gamma": 0.0004442144772654227,
+              "theta": -4.663061728713528,
+              "vega": 23.444675953873848
+            }
+          },
+          {
+            "strike": 22600.0,
+            "expiry": "2026-10-27",
+            "dte": 26,
+            "leg": "CE",
+            "ltp": 366.0,
+            "iv": 0.1108,
+            "bid": 365.55,
+            "ask": 367.75,
+            "bid_qty": 65,
+            "ask_qty": 65,
+            "volume": 20170,
+            "oi": 11040,
+            "change_oi": 5149,
+            "greeks": {
+              "delta": 0.5863173230359067,
+              "gamma": 0.0005823731837621288,
+              "theta": -7.550075206326642,
+              "vega": 23.519283850141786
+            }
+          },
+          {
+            "strike": 22600.0,
+            "expiry": "2026-10-27",
+            "dte": 26,
+            "leg": "PE",
+            "ltp": 264.0,
+            "iv": 0.1446,
+            "bid": 261.3,
+            "ask": 263.25,
+            "bid_qty": 130,
+            "ask_qty": 65,
+            "volume": 31228,
+            "oi": 13899,
+            "change_oi": 3687,
+            "greeks": {
+              "delta": -0.4305114119559884,
+              "gamma": 0.00045003331052131273,
+              "theta": -4.626997960249317,
+              "vega": 23.718975015668025
+            }
+          },
+          {
+            "strike": 22650.0,
+            "expiry": "2026-10-27",
+            "dte": 26,
+            "leg": "CE",
+            "ltp": 337.7,
+            "iv": 0.1112,
+            "bid": 337.2,
+            "ask": 338.95,
+            "bid_qty": 65,
+            "ask_qty": 325,
+            "volume": 3054,
+            "oi": 1382,
+            "change_oi": 682,
+            "greeks": {
+              "delta": 0.5568318517042822,
+              "gamma": 0.0005882026518446135,
+              "theta": -7.511116424211071,
+              "vega": 23.840465418148252
+            }
+          },
+          {
+            "strike": 22650.0,
+            "expiry": "2026-10-27",
+            "dte": 26,
+            "leg": "PE",
+            "ltp": 285.0,
+            "iv": 0.1444,
+            "bid": 284,
+            "ask": 285.45,
+            "bid_qty": 650,
+            "ask_qty": 65,
+            "volume": 6396,
+            "oi": 3582,
+            "change_oi": 213,
+            "greeks": {
+              "delta": -0.4530658433967436,
+              "gamma": 0.000454445672418716,
+              "theta": -4.568660533362212,
+              "vega": 23.918400271086885
+            }
+          },
+          {
+            "strike": 22700.0,
+            "expiry": "2026-10-27",
+            "dte": 26,
+            "leg": "CE",
+            "ltp": 310.2,
+            "iv": 0.1112,
+            "bid": 310,
+            "ask": 311.35,
+            "bid_qty": 325,
+            "ask_qty": 65,
+            "volume": 47709,
+            "oi": 23217,
+            "change_oi": 7329,
+            "greeks": {
+              "delta": 0.5273632973399724,
+              "gamma": 0.0005928442532295835,
+              "theta": -7.42558510071915,
+              "vega": 24.028594351188893
+            }
+          },
+          {
+            "strike": 22700.0,
+            "expiry": "2026-10-27",
+            "dte": 26,
+            "leg": "PE",
+            "ltp": 305.9,
+            "iv": 0.1436,
+            "bid": 304.45,
+            "ask": 305.8,
+            "bid_qty": 130,
+            "ask_qty": 65,
+            "volume": 52639,
+            "oi": 31709,
+            "change_oi": 5458,
+            "greeks": {
+              "delta": -0.47574828226370236,
+              "gamma": 0.0004593150772086243,
+              "theta": -4.460551447322039,
+              "vega": 24.040755167911062
+            }
+          },
+          {
+            "strike": 22750.0,
+            "expiry": "2026-10-27",
+            "dte": 26,
+            "leg": "CE",
+            "ltp": 284.8,
+            "iv": 0.1116,
+            "bid": 282.5,
+            "ask": 284.35,
+            "bid_qty": 130,
+            "ask_qty": 585,
+            "volume": 6773,
+            "oi": 1862,
+            "change_oi": 821,
+            "greeks": {
+              "delta": 0.4978597165408597,
+              "gamma": 0.0005921041965108512,
+              "theta": -7.329762219226035,
+              "vega": 24.084924978437893
+            }
+          },
+          {
+            "strike": 22750.0,
+            "expiry": "2026-10-27",
+            "dte": 26,
+            "leg": "PE",
+            "ltp": 327.7,
+            "iv": 0.1427,
+            "bid": 326.45,
+            "ask": 332,
+            "bid_qty": 65,
+            "ask_qty": 130,
+            "volume": 8366,
+            "oi": 4471,
+            "change_oi": 1274,
+            "greeks": {
+              "delta": -0.4987232901173779,
+              "gamma": 0.0004630654583837637,
+              "theta": -4.324550590759245,
+              "vega": 24.08514825663198
+            }
+          }
+        ]
+      }
+    ]
   }
 }
