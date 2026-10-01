@@ -137,10 +137,12 @@ def main(argv=None) -> int:
 
         print(f"[export] Uploading {filename} -> gs://{BUCKET}/{destination}")
         blob = bucket.blob(destination)
+        # Cache-Control is object metadata, not an upload_from_filename argument:
+        # passing it as a kwarg raises TypeError and fails the whole export.
+        blob.cache_control = CACHE_CONTROL
         blob.upload_from_filename(
             str(source),
             content_type="application/json",
-            cache_control=CACHE_CONTROL,
         )
 
         if PUBLIC_READ:
