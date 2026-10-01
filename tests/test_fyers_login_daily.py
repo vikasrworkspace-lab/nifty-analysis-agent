@@ -191,7 +191,10 @@ def test_verify_token_accepts_a_200_ok(monkeypatch):
     ok, detail = fyers_login.verify_token(TOKEN, "ABCDEF1234-100")
     assert ok and "accepted" in detail
     # The token travels in the Authorization header, never in the URL or argv.
-    assert rec.kwargs["headers"]["Authorization"] == f"Bearer {TOKEN}"
+    # Fyers wants "APP_ID:TOKEN", not "Bearer <token>": a Bearer header is
+    # unparseable and returns HTTP 400 / -209 even for a valid token.
+    assert rec.kwargs["headers"]["Authorization"] == f"ABCDEF1234-100:{TOKEN}"
+    assert rec.kwargs["headers"]["version"] == "3"
     assert TOKEN not in rec.kwargs["url"]
 
 

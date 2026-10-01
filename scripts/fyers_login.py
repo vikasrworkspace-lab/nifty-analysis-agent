@@ -63,14 +63,24 @@ def verify_token(access_token: str, client_id: str, timeout: int = 30) -> tuple[
     try:
         import requests
     except ImportError:
-        return True, "skipped (requests not installed)"
+        # Not "skipped, all fine": this script exists to prove the token works.
+        # Reporting success without having called Fyers would be a lie that
+        # only shows up at 09:00, when data silently stops flowing.
+        return False, "requests is not installed, so the token was NOT verified"
 
     try:
+        # Fyers expects "APP_ID:TOKEN", not a Bearer token. The official
+        # fyers_apiv3 SDK builds self.header = f"{client_id}:{token}" and sends
+        # version: 3 on every authenticated call. A "Bearer <token>" header is
+        # unparseable and comes back -209 "Please provide the validation
+        # parameter" even for a perfectly good token, which reads like a
+        # rejected login and sends you chasing the wrong problem.
         resp = requests.get(
             "https://api-t1.fyers.in/api/v3/profile",
-            headers={"Authorization": f"Bearer {access_token}",
+            headers={"Authorization": f"{client_id}:{access_token}",
                      "X-Api-Key": client_id,
-                     "Content-Type": "application/json"},
+                     "Content-Type": "application/json",
+                     "version": "3"},
             timeout=timeout,
         )
     except Exception as exc:  # noqa: BLE001 - any network problem is "not verified"

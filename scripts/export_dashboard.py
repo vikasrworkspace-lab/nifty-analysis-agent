@@ -276,7 +276,12 @@ def run_wfo(df, symbol, features=None, val_window=WFO_VAL_WINDOW,
             diffs = search_mat - mat[i]
             dists = np.sum(diffs ** 2, axis=1)
             top_n = min(k, len(dists))
-            top_idx = np.argpartition(dists, top_n)[:top_n]
+            # Partition at top_n-1, not top_n: kth is an index, so when the pool
+            # holds exactly top_n rows top_n is out of range and numpy raises
+            # "kth(=top_n) out of bounds (top_n)". Currently masked by the
+            # len(search_mat) < k guard above, but the two converge whenever the
+            # usable history shrinks to k.
+            top_idx = np.argpartition(dists, top_n - 1)[:top_n]
             next_rets = returns_wfo[top_idx + 1]
             prob_up = (np.sum(next_rets > 0) / top_n) * 100
             expected_ret = float(np.mean(next_rets))

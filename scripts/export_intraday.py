@@ -80,7 +80,12 @@ class IntradayWFO:
 
         k = min(self.k, len(X_tr))
         for i in range(len(X_ev)):
-            nearest_idx = np.argpartition(dist[i], k)[:k]
+            # kth must be a valid index, so partition at k-1 rather than k.
+            # When the candidate pool holds exactly k rows, k is out of range and
+            # numpy raises "kth(=k) out of bounds (k)". k is already clamped to
+            # the pool above, so k-1 is valid for every pool size and [:k] still
+            # selects the k nearest analogues.
+            nearest_idx = np.argpartition(dist[i], k - 1)[:k]
             nearest_returns = y_tr_r[nearest_idx]
 
             pred_return = np.mean(nearest_returns)
