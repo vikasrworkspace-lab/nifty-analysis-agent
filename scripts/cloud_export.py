@@ -143,11 +143,13 @@ def main(argv=None) -> int:
         blob.upload_from_filename(
             str(source),
             content_type="application/json",
+            # Grant public read in the upload itself. A separate blob.acl call is
+            # both racy and version-fragile: uploading first leaves the object
+            # private until the ACL lands, and google-cloud-storage 3.x dropped
+            # ObjectACL.all_users(), so that call raised AttributeError and left
+            # the object permanently 403.
+            predefined_acl="publicRead" if PUBLIC_READ else None,
         )
-
-        if PUBLIC_READ:
-            blob.acl.all_users().grant_read()
-            blob.acl.save()
 
     print("[export] Dashboard export and upload completed successfully.")
     return 0

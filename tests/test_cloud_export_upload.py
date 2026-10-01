@@ -57,12 +57,23 @@ class _FakeAcl:
         return None
 
 
+def test_object_acl_has_no_all_users():
+    """Documents why public read is granted at upload, not via blob.acl.
+
+    google-cloud-storage 3.x removed ObjectACL.all_users(), so the old
+    `blob.acl.all_users().grant_read()` raised AttributeError *after* the object
+    had already been replaced, leaving it private and returning 403 to browsers.
+    """
+    from google.cloud.storage.acl import ObjectACL
+
+    assert not hasattr(ObjectACL, "all_users")
+
+
 class _FakeBlob:
     def __init__(self, destination):
         self.destination = destination
         self.cache_control = None
         self.content_type = None
-        self.acl = _FakeAcl()
 
     def upload_from_filename(self, filename, content_type=None, **kwargs):
         if "cache_control" in kwargs:
@@ -72,6 +83,7 @@ class _FakeBlob:
             )
         self.content_type = content_type
         self.uploaded_from = filename
+        self.predefined_acl = kwargs.get("predefined_acl")
 
 
 class _FakeBucket:
@@ -128,6 +140,8 @@ def test_main_publishes_with_no_store_cache_control(tmp_path, monkeypatch):
     blob = client._bucket.blobs["dashboard/dashboard_data.json"]
     assert blob.cache_control == cloud_export.CACHE_CONTROL == "no-store"
     assert blob.content_type == "application/json"
+    # Public read must be granted by the upload, or the object ends up 403.
+    assert blob.predefined_acl == "publicRead"
 
 
 def test_source_does_not_pass_cache_control_to_upload():
@@ -135,3 +149,10 @@ def test_source_does_not_pass_cache_control_to_upload():
     source = (ROOT / "scripts" / "cloud_export.py").read_text(encoding="utf-8")
     assert "cache_control=CACHE_CONTROL" not in source
     assert "blob.cache_control = CACHE_CONTROL" in source
+
+
+def test_source_grants_public_read_via_predefined_acl():
+    """Reject the removed all_users() ACL call regressing back in."""
+    source = (ROOT / "scripts" / "cloud_export.py").read_text(encoding="utf-8")
+    assert "acl.all_users()" not in source
+    assert 'predefined_acl="publicRead"' in source
