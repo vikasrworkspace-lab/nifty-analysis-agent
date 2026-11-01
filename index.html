@@ -1504,22 +1504,35 @@
                             <span id="vp-radar-coiling-text" class="font-medium"></span>
                         </div>
 
-                        <!-- Two-Column Insight Cards -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
-                            <!-- 1. Options Flow Card -->
+                        <!-- Three-Column Institutional Insight Cards (FII Flow + Options Flow + Tape Flow) -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
+                            <!-- 1. FII Institutional Flow Card -->
                             <div class="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/80 shadow-2xs">
                                 <div class="flex items-center justify-between mb-1.5">
                                     <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 flex items-center gap-1">
-                                        <i class="fa-solid fa-chart-pie text-emerald-500"></i> OPTIONS DIRECTION FLOW
+                                        <i class="fa-solid fa-building-columns text-emerald-500"></i> FII CASH FLOW
                                     </span>
-                                    <span id="vp-radar-options-ratio" class="text-[10px] font-mono font-bold text-emerald-600 dark:text-emerald-400">--</span>
+                                    <span id="vp-radar-fii-tag" class="text-[10px] font-mono font-bold text-emerald-600 dark:text-emerald-400">--</span>
+                                </div>
+                                <p id="vp-radar-fii-line" class="text-xs text-slate-700 dark:text-slate-300 font-medium leading-relaxed">
+                                    Evaluating institutional daily cash flow...
+                                </p>
+                            </div>
+
+                            <!-- 2. Options Direction Flow Card -->
+                            <div class="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/80 shadow-2xs">
+                                <div class="flex items-center justify-between mb-1.5">
+                                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 flex items-center gap-1">
+                                        <i class="fa-solid fa-chart-pie text-blue-500"></i> OPTIONS DIRECTION FLOW
+                                    </span>
+                                    <span id="vp-radar-options-ratio" class="text-[10px] font-mono font-bold text-blue-600 dark:text-blue-400">--</span>
                                 </div>
                                 <p id="vp-radar-options-line" class="text-xs text-slate-700 dark:text-slate-300 font-medium leading-relaxed">
                                     Loading live institutional options flow...
                                 </p>
                             </div>
 
-                            <!-- 2. Futures & Tape Flow Card -->
+                            <!-- 3. Futures & Tape Flow Card -->
                             <div class="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/80 shadow-2xs">
                                 <div class="flex items-center justify-between mb-1.5">
                                     <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 flex items-center gap-1">
@@ -2432,6 +2445,25 @@
                         } catch(e) {}
                     }
                 }
+
+                // Ensure derivatives (FII + Options + Futures order flow) payload is loaded
+                if (!dashboardData._derivatives) {
+                    if (window._lastKnownDerivatives) {
+                        dashboardData._derivatives = window._lastKnownDerivatives;
+                    } else {
+                        try {
+                            const derivInst = (currentInstrument === 'daily' || !currentInstrument) ? 'nifty' : currentInstrument;
+                            const derivRes = await fetch(`${DATA_BASE_URL}/intraday_5_${derivInst}.json${cb}`);
+                            if (derivRes.ok) {
+                                const derivData = await derivRes.json();
+                                if (derivData && derivData._derivatives) {
+                                    window._lastKnownDerivatives = derivData._derivatives;
+                                    dashboardData._derivatives = derivData._derivatives;
+                                }
+                            }
+                        } catch(e) {}
+                    }
+                }
                 
                 const select = document.getElementById('date-picker');
                 // Exclude the reserved underscore-prefixed blocks from date selection
@@ -3264,11 +3296,15 @@
             const st = currSigs.supertrend_signal || 'neutral';
             const ema = currSigs.ema20_signal || 'neutral';
 
-            // 1. Resolve Corridor Boundaries
-            let ceilingStrike = currSigs.options_resistance;
-            let floorStrike = currSigs.options_support;
-            let ceilingOiSub = "Major Resistance Barrier (Call Writers)";
-            let floorOiSub = "Major Support Cushion (Put Defenders)";
+            // 1. Resolve Near-The-Money Active Corridor (ATM ± 150–250 pts, NEVER a 1,000-pt macro gap)
+            const isBN = (currentInstrument === 'BANKNIFTY' || currentInstrument === 'banknifty');
+            const step = isBN ? 100 : 50;
+            const maxCorridorDist = isBN ? 600 : 250;
+
+            let ceilingStrike = null;
+            let floorStrike = null;
+            let ceilingOiSub = "Active Resistance Barrier (Call Writers)";
+            let floorOiSub = "Active Support Cushion (Put Defenders)";
             let callChgRaw = 0;
             let callTotalRaw = 0;
             let putChgRaw = 0;
@@ -3281,19 +3317,23 @@
             const derivPayload = dashboardData._derivatives || window._lastKnownDerivatives;
             if (derivPayload && derivPayload.options) {
                 const opt = derivPayload.options;
-                if (opt.heaviest_ce && opt.heaviest_ce.strike) {
-                    ceilingStrike = opt.heaviest_ce.strike;
-                    callTotalRaw = opt.heaviest_ce.oi || 0;
-                    callChgRaw = opt.heaviest_ce.oich || 0;
+                // Prioritize the tight Near-The-Money active strikes calculated from live order book
+                const activeCe = opt.active_resistance_ce || (opt.heaviest_ce && Math.abs(opt.heaviest_ce.strike - currPrice) <= maxCorridorDist ? opt.heaviest_ce : null);
+                const activePe = opt.active_support_pe || (opt.heaviest_pe && Math.abs(opt.heaviest_pe.strike - currPrice) <= maxCorridorDist ? opt.heaviest_pe : null);
+
+                if (activeCe && activeCe.strike) {
+                    ceilingStrike = activeCe.strike;
+                    callTotalRaw = activeCe.oi || 0;
+                    callChgRaw = activeCe.oich || 0;
                     const chgSign = callChgRaw >= 0 ? "+" : "";
                     const totalLakh = (callTotalRaw / 100000).toFixed(2);
                     ceilingOiSub = `${chgSign}${callChgRaw.toLocaleString('en-IN')} contracts added today (Total: ${totalLakh} Lakh open)`;
                     hasOptions = true;
                 }
-                if (opt.heaviest_pe && opt.heaviest_pe.strike) {
-                    floorStrike = opt.heaviest_pe.strike;
-                    putTotalRaw = opt.heaviest_pe.oi || 0;
-                    putChgRaw = opt.heaviest_pe.oich || 0;
+                if (activePe && activePe.strike) {
+                    floorStrike = activePe.strike;
+                    putTotalRaw = activePe.oi || 0;
+                    putChgRaw = activePe.oich || 0;
                     const chgSign = putChgRaw >= 0 ? "+" : "";
                     const totalLakh = (putTotalRaw / 100000).toFixed(2);
                     floorOiSub = `${chgSign}${putChgRaw.toLocaleString('en-IN')} contracts added today (Total: ${totalLakh} Lakh open)`;
@@ -3309,7 +3349,7 @@
                 if (optPayload && optPayload.candidates && optPayload.candidates.length > 0) {
                     const frontExp = optPayload.candidates[0];
                     const legs = frontExp.legs || [];
-                    const calls = legs.filter(l => l.leg === 'CE' && l.strike >= currPrice && Math.abs(l.strike - currPrice) <= 1500);
+                    const calls = legs.filter(l => l.leg === 'CE' && l.strike >= currPrice && Math.abs(l.strike - currPrice) <= maxCorridorDist);
                     if (calls.length > 0) {
                         calls.sort((a, b) => (b.oi || 0) - (a.oi || 0));
                         ceilingStrike = calls[0].strike;
@@ -3320,7 +3360,7 @@
                         ceilingOiSub = `${chgSign}${callChgRaw.toLocaleString('en-IN')} contracts added today (Total: ${totalLakh} Lakh open)`;
                         hasOptions = true;
                     }
-                    const puts = legs.filter(l => l.leg === 'PE' && l.strike <= currPrice && Math.abs(l.strike - currPrice) <= 1500);
+                    const puts = legs.filter(l => l.leg === 'PE' && l.strike <= currPrice && Math.abs(l.strike - currPrice) <= maxCorridorDist);
                     if (puts.length > 0) {
                         puts.sort((a, b) => (b.oi || 0) - (a.oi || 0));
                         floorStrike = puts[0].strike;
@@ -3334,12 +3374,27 @@
                 }
             }
 
-            if (!ceilingStrike || !floorStrike || ceilingStrike <= floorStrike) {
-                ceilingStrike = Math.ceil((high + 20) / 100) * 100;
-                floorStrike = Math.floor((low - 20) / 100) * 100;
-                if (ceilingStrike - floorStrike < 200) {
-                    ceilingStrike += 50;
-                    floorStrike -= 50;
+            // Strict Near-The-Money bounds relative to Spot:
+            // Ensure corridor is NEVER a 1,000-pt gap (e.g. 22,500 to 23,500)
+            if (currPrice > 0) {
+                if (!floorStrike || Math.abs(floorStrike - currPrice) > maxCorridorDist) {
+                    floorStrike = Math.floor((currPrice - 50) / step) * step;
+                }
+                if (!ceilingStrike || Math.abs(ceilingStrike - currPrice) > maxCorridorDist || ceilingStrike <= floorStrike) {
+                    ceilingStrike = Math.ceil((currPrice + 50) / step) * step;
+                }
+                if (!isBN && (ceilingStrike - floorStrike) > 300) {
+                    floorStrike = Math.floor((currPrice - 50) / 50) * 50;
+                    ceilingStrike = Math.ceil((currPrice + 50) / 50) * 50;
+                }
+            } else {
+                if (!ceilingStrike || !floorStrike || ceilingStrike <= floorStrike) {
+                    ceilingStrike = Math.ceil((high + 20) / step) * step;
+                    floorStrike = Math.floor((low - 20) / step) * step;
+                    if (ceilingStrike - floorStrike < (isBN ? 300 : 150)) {
+                        ceilingStrike += step;
+                        floorStrike -= step;
+                    }
                 }
             }
 
@@ -6393,6 +6448,8 @@
             const radarBadgeEl = document.getElementById('vp-radar-badge');
             const coilingAlertEl = document.getElementById('vp-radar-coiling-alert');
             const coilingTextEl = document.getElementById('vp-radar-coiling-text');
+            const fiiTagEl = document.getElementById('vp-radar-fii-tag');
+            const fiiLineEl = document.getElementById('vp-radar-fii-line');
             const optRatioEl = document.getElementById('vp-radar-options-ratio');
             const optLineEl = document.getElementById('vp-radar-options-line');
             const futTagEl = document.getElementById('vp-radar-futures-tag');
@@ -6601,6 +6658,32 @@
             const tapeWindowStr = (windowStart && windowEnd && windowStart !== windowEnd) ? `${windowStart}–${windowEnd} IST` : `${windowEnd} IST`;
 
             // Update DOM Elements with explicit timestamps
+            if (fiiTagEl && fiiLineEl) {
+                let fiiFlow = 'NEUTRAL', fiiVal = null;
+                if (dashboardData) {
+                    const keys = Object.keys(dashboardData).filter(k => !k.startsWith('_')).sort();
+                    for (let i = keys.length - 1; i >= 0; i--) {
+                        if (dashboardData[keys[i]] && (dashboardData[keys[i]].fii || dashboardData[keys[i]].fii_value !== undefined)) {
+                            fiiFlow = (dashboardData[keys[i]].fii || 'NEUTRAL').toUpperCase();
+                            fiiVal = dashboardData[keys[i]].fii_value;
+                            break;
+                        }
+                    }
+                }
+                const sign = (fiiVal && fiiVal > 0) ? '+' : '';
+                const fiiValText = fiiVal !== null ? `${sign}₹${Math.abs(fiiVal).toLocaleString('en-IN')} Cr` : (fiiFlow === 'BUYING' ? 'NET BUYERS' : (fiiFlow === 'SELLING' ? 'NET SELLERS' : 'NEUTRAL FLOW'));
+                fiiTagEl.textContent = fiiValText;
+                fiiTagEl.className = `text-[10px] font-mono font-bold ${(fiiFlow === 'BUYING' || (fiiVal && fiiVal > 0)) ? 'text-emerald-600 dark:text-emerald-400' : ((fiiFlow === 'SELLING' || (fiiVal && fiiVal < 0)) ? 'text-rose-600 dark:text-rose-400' : 'text-slate-500')}`;
+                
+                if (fiiFlow === 'BUYING' || (fiiVal && fiiVal > 0)) {
+                    fiiLineEl.innerHTML = `Foreign Institutional Investors are net <strong class="text-emerald-600 dark:text-emerald-400">BUYERS (${fiiValText})</strong>. Institutional cash inflow supports upward momentum on pullbacks.`;
+                } else if (fiiFlow === 'SELLING' || (fiiVal && fiiVal < 0)) {
+                    fiiLineEl.innerHTML = `Foreign Institutional Investors are net <strong class="text-rose-600 dark:text-rose-400">SELLERS (${fiiValText})</strong>. Institutional cash outflow creates persistent supply on rallies.`;
+                } else {
+                    fiiLineEl.innerHTML = `Institutional cash flow is balanced / neutral today. Price action governed by local intraday participants and options delta.`;
+                }
+            }
+
             if (optRatioEl) optRatioEl.textContent = `${optionsRatioText} • @ ${hasFyersDeriv && deriv.timestamp ? deriv.timestamp : lastBar.time} IST${hasFyersDeriv ? ' (Fyers Live)' : ''}`;
             if (optLineEl) optLineEl.textContent = optionsLine;
             if (futTagEl) futTagEl.textContent = `${tapeTag} • ${tapeWindowStr}`;
