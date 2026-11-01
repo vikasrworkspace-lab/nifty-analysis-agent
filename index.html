@@ -817,19 +817,19 @@
             </div>
         </div>
 
-        <!-- INSTITUTIONAL DERIVATIVES & SYSTEMATIC HEDGING RADAR (LIVE FYERS) -->
+        <!-- INSTITUTIONAL DIRECTION & ORDER FLOW COMPASS (LIVE FYERS + FII) -->
         <div id="institutional-radar-card" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-4 sm:p-6 shadow-xl transition-all">
             <!-- Header -->
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-5 border-b border-slate-200 dark:border-slate-800 gap-3">
                 <div class="flex items-center gap-2.5">
                     <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-brand-600 to-cyan-500 flex items-center justify-center text-white shadow-md">
-                        <i class="fa-solid fa-layer-group text-sm"></i>
+                        <i class="fa-solid fa-compass text-sm"></i>
                     </div>
                     <div>
                         <h2 class="text-lg font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-                            INSTITUTIONAL RADAR &amp; SYSTEMATIC HEDGING PLAYBOOK
+                            INSTITUTIONAL DIRECTION &amp; ORDER FLOW COMPASS
                         </h2>
-                        <p class="text-xs text-slate-500 dark:text-slate-400">Live Futures Buildup, Open Interest Defense Walls &amp; Capital-Preservation Hedging for ₹90k Capital</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Constant Institutional (FII) Flow, Options Direction Skew &amp; Capital-Safe 1-Lot Playbook for ₹90k Capital</p>
                     </div>
                 </div>
                 <div class="flex items-center gap-2">
@@ -840,39 +840,74 @@
                 </div>
             </div>
 
-            <!-- Institutional Shift & Regime Health Banner -->
+            <!-- Master Direction Verdict Banner -->
             <div id="radar-shift-banner" class="my-4 p-4 rounded-2xl border transition-all flex flex-col md:flex-row items-start md:items-center justify-between gap-3 shadow-sm bg-emerald-500/10 border-emerald-500/30 text-emerald-800 dark:text-emerald-200">
                 <div class="flex items-center gap-3">
                     <div id="radar-shift-icon-box" class="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0 text-lg">
-                        <i class="fa-solid fa-shield-halved" id="radar-shift-icon"></i>
+                        <i class="fa-solid fa-arrow-trend-up" id="radar-shift-icon"></i>
                     </div>
                     <div>
                         <div class="flex items-center gap-2 flex-wrap">
-                            <span class="text-xs font-black tracking-wider uppercase text-slate-900 dark:text-white" id="radar-shift-badge">INSTITUTIONAL POSITIONING: STABLE</span>
-                            <span id="radar-shift-pill" class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-500/20 text-emerald-700 dark:text-emerald-300">WALLS DEFENDED</span>
+                            <span class="text-xs font-black tracking-wider uppercase text-slate-900 dark:text-white" id="radar-shift-badge">INSTITUTIONAL DIRECTION: STRONG UP (BULLISH)</span>
+                            <span id="radar-shift-pill" class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-500/20 text-emerald-700 dark:text-emerald-300">FLOWS ALIGNED</span>
                         </div>
                         <p class="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-relaxed" id="radar-shift-detail">
-                            Put floor and Call ceiling are actively defended. Minor 5m fluctuations are normal market noise — hold hedged spread and let theta decay work.
+                            Options writers are aggressively selling puts at the immediate floor while Futures trade at a solid premium. Directional bias is UP.
                         </p>
                     </div>
                 </div>
                 <div class="self-end md:self-auto shrink-0">
-                    <span id="radar-action-directive" class="px-3 py-1.5 rounded-xl font-bold font-mono text-xs shadow-sm bg-emerald-600 text-white whitespace-nowrap">
-                        HOLD HEDGE / DO NOTHING
+                    <span id="radar-action-directive" class="px-3.5 py-2 rounded-xl font-black font-mono text-xs shadow-sm bg-emerald-600 text-white whitespace-nowrap">
+                        BUY 1 LOT CALL ON DIPS
                     </span>
                 </div>
             </div>
 
-            <!-- 4 Derivatives Metrics Cards -->
+            <!-- 4 Institutional Flow & Active Near-Money Corridor Cards -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 my-5">
-                <!-- 1. Futures vs Spot Basis -->
+                <!-- 1. Institutional (FII) Cash Flow -->
                 <div class="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-2xl p-4 flex flex-col justify-between shadow-sm">
                     <div class="flex justify-between items-start mb-2">
-                        <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">FUTURES BASIS &amp; BUILDUP</span>
+                        <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-building-columns text-brand-500"></i> FII CASH FLOW
+                        </span>
+                        <span id="radar-fii-status" class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">BUYING</span>
+                    </div>
+                    <div class="text-2xl font-black font-mono text-emerald-600 dark:text-emerald-400 my-1" id="radar-fii-val">
+                        +₹1,245 Cr
+                    </div>
+                    <div class="text-[11px] font-medium text-slate-500 dark:text-slate-400" id="radar-fii-sub">
+                        Net Institutional Activity
+                    </div>
+                </div>
+
+                <!-- 2. Options Direction Flow (PCR & Put/Call Skew) -->
+                <div class="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-2xl p-4 flex flex-col justify-between shadow-sm">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-chart-pie text-emerald-500"></i> OPTIONS FLOW
+                        </span>
+                        <span id="radar-pcr-status" class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">PUT WRITING FLOOR</span>
+                    </div>
+                    <div class="text-2xl font-black font-mono text-blue-600 dark:text-blue-400 my-1" id="radar-pcr">
+                        PCR 1.35
+                    </div>
+                    <div class="text-[11px] font-medium text-slate-500 dark:text-slate-400 flex justify-between" id="radar-pcr-sub">
+                        <span>VIX: <strong id="radar-vix" class="text-slate-700 dark:text-slate-200">--</strong></span>
+                        <span id="radar-pcr-desc" class="text-emerald-600 dark:text-emerald-400 font-bold">Bulls Defending Floor</span>
+                    </div>
+                </div>
+
+                <!-- 3. Futures vs Spot Basis -->
+                <div class="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-2xl p-4 flex flex-col justify-between shadow-sm">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-bolt text-indigo-500"></i> FUTURES ORDER FLOW
+                        </span>
                         <span id="radar-fut-status" class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">PREMIUM</span>
                     </div>
                     <div class="text-2xl font-black font-mono text-slate-900 dark:text-white my-1" id="radar-fut-basis">
-                        +0.00 pts
+                        +48.30 pts
                     </div>
                     <div class="text-[11px] font-medium text-slate-500 dark:text-slate-400 flex justify-between" id="radar-fut-sub">
                         <span>Spot: <strong id="radar-fut-spot" class="text-slate-700 dark:text-slate-200">--</strong></span>
@@ -880,119 +915,97 @@
                     </div>
                 </div>
 
-                <!-- 2. Put-Call Ratio (PCR) -->
-                <div class="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-2xl p-4 flex flex-col justify-between shadow-sm">
+                <!-- 4. Active Near-The-Money Corridor (Tight Tactical Range) -->
+                <div class="bg-gradient-to-br from-amber-500/5 to-indigo-500/5 dark:from-slate-800/80 dark:to-slate-800/40 border border-amber-500/20 rounded-2xl p-4 flex flex-col justify-between shadow-sm">
                     <div class="flex justify-between items-start mb-2">
-                        <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">PUT-CALL RATIO (PCR)</span>
-                        <span id="radar-pcr-status" class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/15 text-blue-700 dark:text-blue-300">BULLISH</span>
+                        <span class="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-arrows-left-right text-amber-500"></i> ACTIVE NTM CORRIDOR
+                        </span>
+                        <span id="radar-corridor-width" class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-700 dark:text-amber-300">100 PTS RANGE</span>
                     </div>
-                    <div class="text-2xl font-black font-mono text-blue-600 dark:text-blue-400 my-1" id="radar-pcr">
-                        --
+                    <div class="text-xl sm:text-2xl font-black font-mono text-slate-900 dark:text-white my-1" id="radar-corridor-span">
+                        23,000 PE — 23,100 CE
                     </div>
-                    <div class="text-[11px] font-medium text-slate-500 dark:text-slate-400 flex justify-between" id="radar-pcr-sub">
-                        <span>VIX: <strong id="radar-vix" class="text-slate-700 dark:text-slate-200">--</strong></span>
-                        <span id="radar-pcr-desc" class="text-slate-500 dark:text-slate-400">Put Cushion</span>
+                    <div class="text-[11px] font-medium text-slate-500 dark:text-slate-400" id="radar-corridor-sub">
+                        Near-the-Money Support &amp; Resistance
                     </div>
-                </div>
-
-                <!-- 3. Institutional Put Floor Wall -->
-                <div class="bg-emerald-500/5 dark:bg-emerald-950/20 border border-emerald-500/20 rounded-2xl p-4 flex flex-col justify-between shadow-sm">
-                    <div class="flex justify-between items-start mb-2">
-                        <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">INSTITUTIONAL FLOOR</span>
-                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-700 dark:text-emerald-300">PUT WALL</span>
-                    </div>
-                    <div class="text-2xl font-black font-mono text-emerald-600 dark:text-emerald-400 my-1" id="radar-floor-strike">
-                        -- PE
-                    </div>
-                    <div class="text-[11px] font-medium text-emerald-800/80 dark:text-emerald-300/80" id="radar-floor-sub">
-                        Highest Open Interest Defense
-                    </div>
-                </div>
-
-                <!-- 4. Institutional Call Ceiling Wall -->
-                <div class="bg-rose-500/5 dark:bg-rose-950/20 border border-rose-500/20 rounded-2xl p-4 flex flex-col justify-between shadow-sm">
-                    <div class="flex justify-between items-start mb-2">
-                        <span class="text-xs font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider">INSTITUTIONAL CEILING</span>
-                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/20 text-rose-700 dark:text-rose-300">CALL WALL</span>
-                    </div>
-                    <div class="text-2xl font-black font-mono text-rose-600 dark:text-rose-400 my-1" id="radar-ceiling-strike">
-                        -- CE
-                    </div>
-                    <div class="text-[11px] font-medium text-rose-800/80 dark:text-rose-300/80" id="radar-ceiling-sub">
-                        Heavy Call Resistance Barrier
-                    </div>
+                    <!-- Hidden elements kept for script compatibility -->
+                    <div id="radar-floor-strike" class="hidden"></div>
+                    <div id="radar-floor-sub" class="hidden"></div>
+                    <div id="radar-ceiling-strike" class="hidden"></div>
+                    <div id="radar-ceiling-sub" class="hidden"></div>
                 </div>
             </div>
 
-            <!-- Systematic Defined-Risk Hedging Matrix (Preserving ₹90k Capital) -->
+            <!-- Capital-Safe 1-Lot Directional Playbook (Preserving ₹90k Capital) -->
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 pt-4 border-t border-slate-200 dark:border-slate-800">
-                <!-- Left: Active Defined-Risk Hedging Setup -->
+                <!-- Left: 1-Lot Directional Execution Setup -->
                 <div class="lg:col-span-7 bg-gradient-to-br from-slate-50 to-brand-50/30 dark:from-slate-800/60 dark:to-slate-800/20 border border-brand-500/20 rounded-2xl p-4 sm:p-5 shadow-sm space-y-4">
                     <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-700/60">
                         <div class="flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full bg-brand-500"></span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
                             <h3 class="font-black text-xs sm:text-sm text-slate-900 dark:text-white uppercase tracking-wider" id="hedge-setup-title">
-                                SYSTEMATIC HEDGED STRATEGY (DEFINED RISK)
+                                RECOMMENDED: 1-LOT DIRECTIONAL TRADE (₹90K CAPITAL SAFEGUARD)
                             </h3>
                         </div>
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-brand-500/15 text-brand-700 dark:text-brand-300 border border-brand-500/30">
-                            ₹90K CAPITAL SAFEGUARD
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
+                            ₹90K SAFEGUARD (ZERO 1.9L MARGIN)
                         </span>
                     </div>
 
                     <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed" id="hedge-setup-desc">
-                        Analyzing institutional derivatives footprint to construct a positive-theta, defined-risk credit spread...
+                        FIIs and options writers are heavily defending the active floor. Buy 1 Lot ATM Call with strictly capped premium risk — zero broker margin penalty and zero naked shorting.
                     </p>
 
-                    <!-- Trade Execution Legs -->
+                    <!-- Trade Execution Details -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                         <div class="p-3 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700 shadow-2xs space-y-1">
                             <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                                Step 1: Hedge Leg (Buy First!)
+                                1. Trade Contract &amp; Entry
                             </div>
                             <div class="text-xs font-black font-mono text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5" id="hedge-leg-buy">
-                                <i class="fa-solid fa-shield text-xs"></i> BUY Wing Protection
+                                <i class="fa-solid fa-arrow-trend-up text-xs"></i> BUY 1 Lot 23,050 CE @ ~₹101
                             </div>
-                            <div class="text-[10px] text-slate-500 dark:text-slate-400">Protects account from any overnight black swan gap</div>
+                            <div class="text-[10px] text-slate-500 dark:text-slate-400">Strictly 1 Lot &bull; Zero broker margin rejection &bull; ₹82k+ safe cash buffer</div>
                         </div>
 
                         <div class="p-3 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700 shadow-2xs space-y-1">
                             <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                                Step 2: Income Leg (Sell Behind Wall)
+                                2. Risk Stop &amp; Profit Target
                             </div>
                             <div class="text-xs font-black font-mono text-blue-600 dark:text-blue-400 flex items-center gap-1.5" id="hedge-leg-sell">
-                                <i class="fa-solid fa-hand-holding-dollar text-xs"></i> SELL Primary Strike
+                                <i class="fa-solid fa-crosshairs text-xs"></i> SL: ₹76 (-25 pts) &bull; TGT: ₹155 (+55 pts)
                             </div>
-                            <div class="text-[10px] text-slate-500 dark:text-slate-400">Collects decay outside big player boundary</div>
+                            <div class="text-[10px] text-slate-500 dark:text-slate-400">1:2.2 R:R Ratio &bull; Cut immediately if spot breaks 23,000 floor</div>
                         </div>
                     </div>
 
                     <!-- Risk & Capital Metrics Strip -->
                     <div class="grid grid-cols-3 gap-2 pt-2 border-t border-slate-200 dark:border-slate-700/60 text-center">
                         <div class="p-2 rounded-xl bg-white/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700/60">
-                            <div class="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase">Margin Deployed</div>
-                            <div class="text-xs font-black font-mono text-slate-900 dark:text-white mt-0.5" id="hedge-margin">~₹28,000</div>
-                            <div class="text-[9px] text-emerald-600 dark:text-emerald-400 font-bold">₹62k Safe Buffer</div>
+                            <div class="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase">Capital Deployed</div>
+                            <div class="text-xs font-black font-mono text-slate-900 dark:text-white mt-0.5" id="hedge-margin">~₹7,500</div>
+                            <div class="text-[9px] text-emerald-600 dark:text-emerald-400 font-bold">₹82,500 Safe in Cash (91%)</div>
                         </div>
                         <div class="p-2 rounded-xl bg-white/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700/60">
-                            <div class="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase">Max Profit</div>
-                            <div class="text-xs font-black font-mono text-emerald-600 dark:text-emerald-400 mt-0.5" id="hedge-max-profit">~₹1,200 – ₹1,500</div>
-                            <div class="text-[9px] text-slate-500">Defined Target</div>
+                            <div class="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase">Max Profit Target</div>
+                            <div class="text-xs font-black font-mono text-emerald-600 dark:text-emerald-400 mt-0.5" id="hedge-max-profit">~₹3,750 – ₹4,500</div>
+                            <div class="text-[9px] text-slate-500">Defined 1:2.5 Target</div>
                         </div>
                         <div class="p-2 rounded-xl bg-white/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700/60">
-                            <div class="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase">Max Risk</div>
-                            <div class="text-xs font-black font-mono text-rose-600 dark:text-rose-400 mt-0.5" id="hedge-max-loss">~₹3,500 Capped</div>
-                            <div class="text-[9px] text-rose-500">Zero Liquidation Risk</div>
+                            <div class="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase">Max Risk (Strict SL)</div>
+                            <div class="text-xs font-black font-mono text-rose-600 dark:text-rose-400 mt-0.5" id="hedge-max-loss">~₹1,875 Capped</div>
+                            <div class="text-[9px] text-rose-500">Only 2% Account Risk</div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Right: The 4 Iron Rules to NOT Lose -->
+                <!-- Right: The 4 Rules for ₹90k Capital Safeguard -->
                 <div class="lg:col-span-5 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-2xl p-4 sm:p-5 flex flex-col justify-between shadow-sm space-y-3">
                     <div class="flex items-center gap-2 pb-2 border-b border-slate-200 dark:border-slate-700">
                         <i class="fa-solid fa-scale-balanced text-amber-500 text-sm"></i>
                         <h4 class="font-black text-xs text-slate-900 dark:text-white uppercase tracking-wider">
-                            THE 4 RULES TO NEVER LOSE CAPITAL
+                            THE 4 RULES FOR ₹90K CAPITAL SAFEGUARD
                         </h4>
                     </div>
 
@@ -1000,25 +1013,25 @@
                         <div class="flex items-start gap-2 p-2 rounded-lg bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700">
                             <span class="text-emerald-500 font-bold shrink-0">1.</span>
                             <div>
-                                <strong class="text-slate-900 dark:text-white">Strictly 1 Lot Only:</strong> Never scale up to 2 or 3 lots under debt pressure. Steady 1.5%–2.5%/month compounding is how you protect your ₹90k.
+                                <strong class="text-slate-900 dark:text-white">Strictly 1 Lot Only:</strong> Buying 1 lot uses ~₹7,000–₹8,000 premium. Over ₹82,000 (91% of capital) remains 100% safe &amp; untouched in cash.
                             </div>
                         </div>
                         <div class="flex items-start gap-2 p-2 rounded-lg bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700">
                             <span class="text-emerald-500 font-bold shrink-0">2.</span>
                             <div>
-                                <strong class="text-slate-900 dark:text-white">Buy The Hedge Leg First:</strong> Always execute the OTM protective buy order before the sell leg to immediately lock in SEBI margin relief.
+                                <strong class="text-slate-900 dark:text-white">Zero Broker Margin Penalty:</strong> Buying 1 lot option requires ₹0 extra margin and no far-OTM wings. Zero Zerodha/Groww margin rejection and zero ₹1.9L requirement!
                             </div>
                         </div>
                         <div class="flex items-start gap-2 p-2 rounded-lg bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700">
-                            <span class="text-emerald-500 font-bold shrink-0">3.</span>
+                            <span class="text-rose-500 font-bold shrink-0">3.</span>
                             <div>
-                                <strong class="text-slate-900 dark:text-white">50% Profit Exit Discipline:</strong> When the position captures 50% of the max credit (e.g. up ₹700 on ₹1,400), take profit. Never wait for late-expiry gamma shocks.
+                                <strong class="text-slate-900 dark:text-white">Hard Stop at -25 Pts:</strong> If premium drops 25 pts (loss reaches -₹1,875), exit immediately. Strict 2% maximum loss per trade protects your ₹90k capital forever.
                             </div>
                         </div>
                         <div class="flex items-start gap-2 p-2 rounded-lg bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700">
-                            <span class="text-rose-500 font-bold shrink-0">4.</span>
+                            <span class="text-blue-500 font-bold shrink-0">4.</span>
                             <div>
-                                <strong class="text-slate-900 dark:text-white">Hard Stop at Short Strike:</strong> If Spot touches your short strike, exit both legs cleanly. Never hold and pray during a structural breakout.
+                                <strong class="text-slate-900 dark:text-white">Exit at Active Resistance:</strong> When price hits the active ceiling (e.g. 23,100 CE) or gains +50 pts (+₹3,750), book profit. Never hold into late afternoon gamma chop.
                             </div>
                         </div>
                     </div>
@@ -4168,13 +4181,87 @@
 
             const fut = (deriv && deriv.futures) ? deriv.futures : {};
             const opt = (deriv && deriv.options) ? deriv.options : {};
-            const spot = fut.spot || (strat ? strat.currPrice : (currentInstrument === 'BANKNIFTY' ? 54680 : 23050));
+            const isBankNifty = (currentInstrument === 'BANKNIFTY');
+            const spot = fut.spot || (strat ? strat.currPrice : (isBankNifty ? 54680 : 23050));
             const futLtp = fut.ltp || (spot ? spot + 45 : null);
             const basis = fut.basis !== undefined ? fut.basis : (futLtp && spot ? +(futLtp - spot).toFixed(2) : 45.0);
             const pcr = opt.pcr || 1.35;
             const vix = opt.vix || (strat && strat.vix ? strat.vix : 14.8);
 
-            // 1. Basis & Buildup
+            // 1. Institutional (FII) Flow
+            const selectedData = (dashboardData && dateStr && dashboardData[dateStr]) ? dashboardData[dateStr] : (dashboardData && currentResolvedDate && dashboardData[currentResolvedDate] ? dashboardData[currentResolvedDate] : {});
+            let fiiFlow = (selectedData && selectedData.fii) ? selectedData.fii.toUpperCase() : 'NEUTRAL';
+            let fiiVal = (selectedData && selectedData.fii_value !== undefined && selectedData.fii_value !== null) ? selectedData.fii_value : null;
+
+            if (fiiFlow === 'NEUTRAL' && dashboardData) {
+                const keys = Object.keys(dashboardData).filter(k => !k.startsWith('_')).sort();
+                for (let i = keys.length - 1; i >= 0; i--) {
+                    if (dashboardData[keys[i]] && dashboardData[keys[i]].fii) {
+                        fiiFlow = dashboardData[keys[i]].fii.toUpperCase();
+                        fiiVal = dashboardData[keys[i]].fii_value;
+                        break;
+                    }
+                }
+            }
+
+            const fiiValEl = document.getElementById('radar-fii-val');
+            const fiiStatusEl = document.getElementById('radar-fii-status');
+            const fiiSubEl = document.getElementById('radar-fii-sub');
+
+            if (fiiValEl) {
+                if (fiiVal !== null) {
+                    const sign = fiiVal > 0 ? '+' : '';
+                    fiiValEl.textContent = `${sign}₹${Math.abs(fiiVal).toLocaleString('en-IN')} Cr`;
+                    fiiValEl.className = `text-2xl font-black font-mono my-1 ${fiiVal >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`;
+                } else {
+                    fiiValEl.textContent = (fiiFlow === 'BUYING') ? 'BUYING FLOW' : ((fiiFlow === 'SELLING') ? 'SELLING FLOW' : 'NEUTRAL FLOW');
+                    fiiValEl.className = `text-2xl font-black font-mono my-1 ${(fiiFlow === 'BUYING') ? 'text-emerald-600 dark:text-emerald-400' : ((fiiFlow === 'SELLING') ? 'text-rose-600 dark:text-rose-400' : 'text-slate-700 dark:text-slate-300')}`;
+                }
+            }
+            if (fiiStatusEl) {
+                if (fiiFlow === 'BUYING' || (fiiVal && fiiVal > 300)) {
+                    fiiStatusEl.textContent = 'NET BUYERS';
+                    fiiStatusEl.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30';
+                } else if (fiiFlow === 'SELLING' || (fiiVal && fiiVal < -300)) {
+                    fiiStatusEl.textContent = 'NET SELLERS';
+                    fiiStatusEl.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30';
+                } else {
+                    fiiStatusEl.textContent = 'NEUTRAL / BALANCED';
+                    fiiStatusEl.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-slate-500/15 text-slate-700 dark:text-slate-300 border border-slate-500/30';
+                }
+            }
+            if (fiiSubEl) {
+                fiiSubEl.textContent = (fiiVal !== null) ? (fiiVal >= 0 ? 'Institutional Cash Inflow' : 'Institutional Cash Outflow') : 'Daily FII Institutional Trend';
+            }
+
+            // 2. Options Direction Flow (PCR & Trapped Writers)
+            const pcrEl = document.getElementById('radar-pcr');
+            const pcrStatusEl = document.getElementById('radar-pcr-status');
+            const vixEl = document.getElementById('radar-vix');
+            const pcrDescEl = document.getElementById('radar-pcr-desc');
+
+            if (pcrEl) pcrEl.textContent = pcr ? `PCR ${pcr.toFixed(2)}` : '--';
+            if (vixEl) vixEl.textContent = vix ? vix.toFixed(1) : '--';
+
+            const peRatio = opt.pe_ratio !== undefined ? opt.pe_ratio : (pcr >= 1.2 ? 62 : (pcr <= 0.85 ? 38 : 50));
+
+            if (pcrStatusEl) {
+                if (peRatio >= 55 || pcr >= 1.2) {
+                    pcrStatusEl.textContent = 'PUT WRITING FLOOR';
+                    pcrStatusEl.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300';
+                    if (pcrDescEl) pcrDescEl.textContent = `${peRatio.toFixed(0)}% Put Defense`;
+                } else if (peRatio <= 45 || pcr <= 0.85) {
+                    pcrStatusEl.textContent = 'CALL RESISTANCE CAPPING';
+                    pcrStatusEl.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/15 text-rose-700 dark:text-rose-300';
+                    if (pcrDescEl) pcrDescEl.textContent = `${(100 - peRatio).toFixed(0)}% Call Pressure`;
+                } else {
+                    pcrStatusEl.textContent = 'BALANCED FLOW';
+                    pcrStatusEl.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/15 text-blue-700 dark:text-blue-300';
+                    if (pcrDescEl) pcrDescEl.textContent = 'Two-Way Straddle';
+                }
+            }
+
+            // 3. Futures Basis & Buildup
             const futBasisEl = document.getElementById('radar-fut-basis');
             const futStatusEl = document.getElementById('radar-fut-status');
             const futSpotEl = document.getElementById('radar-fut-spot');
@@ -4185,189 +4272,153 @@
 
             if (futBasisEl && basis !== null) {
                 const sign = basis >= 0 ? '+' : '';
-                futBasisEl.textContent = `${sign}${basis.toFixed(2)} pts`;
+                futBasisEl.textContent = `${sign}${basis.toFixed(1)} pts`;
                 futBasisEl.className = `text-2xl font-black font-mono my-1 ${basis >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`;
             }
 
             if (futStatusEl && basis !== null) {
                 if (basis > 15) {
-                    futStatusEl.textContent = 'LONG BUILDUP (PREMIUM)';
+                    futStatusEl.textContent = 'LONGS (PREMIUM)';
                     futStatusEl.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30';
                 } else if (basis < -15) {
-                    futStatusEl.textContent = 'SHORT BUILDUP (DISCOUNT)';
+                    futStatusEl.textContent = 'SHORTS (DISCOUNT)';
                     futStatusEl.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30';
                 } else {
-                    futStatusEl.textContent = 'PAR (CONSOLIDATION)';
+                    futStatusEl.textContent = 'PAR (NEUTRAL)';
                     futStatusEl.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-slate-500/15 text-slate-700 dark:text-slate-300 border border-slate-500/30';
                 }
             }
 
-            // 2. PCR & VIX
-            const pcrEl = document.getElementById('radar-pcr');
-            const pcrStatusEl = document.getElementById('radar-pcr-status');
-            const vixEl = document.getElementById('radar-vix');
-            const pcrDescEl = document.getElementById('radar-pcr-desc');
+            // 4. Near-The-Money Active Corridor (NOT 22,500 — 23,500!)
+            const step = isBankNifty ? 100 : 50;
+            const nearFloorDefault = isBankNifty ? 54500 : 23000;
+            const nearCeilDefault = isBankNifty ? 55000 : 23100;
 
-            if (pcrEl) pcrEl.textContent = pcr ? pcr.toFixed(2) : '--';
-            if (vixEl) vixEl.textContent = vix ? vix.toFixed(1) : '--';
+            const activePe = opt.active_support_pe || opt.heaviest_pe;
+            const activeCe = opt.active_resistance_ce || opt.heaviest_ce;
 
-            if (pcrStatusEl) {
-                if (pcr >= 1.25) {
-                    pcrStatusEl.textContent = 'STRONG PUT DEFENSE';
-                    pcrStatusEl.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300';
-                    if (pcrDescEl) pcrDescEl.textContent = 'Heavy Put Cushion';
-                } else if (pcr <= 0.8) {
-                    pcrStatusEl.textContent = 'CALL DOMINANCE';
-                    pcrStatusEl.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/15 text-rose-700 dark:text-rose-300';
-                    if (pcrDescEl) pcrDescEl.textContent = 'Heavy Call Ceiling';
-                } else {
-                    pcrStatusEl.textContent = 'BALANCED';
-                    pcrStatusEl.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/15 text-blue-700 dark:text-blue-300';
-                    if (pcrDescEl) pcrDescEl.textContent = 'Neutral Sentiment';
+            let floorStrike = activePe ? activePe.strike : nearFloorDefault;
+            let ceilingStrike = activeCe ? activeCe.strike : nearCeilDefault;
+
+            // Enforce tight near-the-money bounds relative to spot
+            if (spot) {
+                if (Math.abs(floorStrike - spot) > (isBankNifty ? 600 : 250)) {
+                    floorStrike = Math.floor((spot - 50) / step) * step;
+                }
+                if (Math.abs(ceilingStrike - spot) > (isBankNifty ? 600 : 250) || ceilingStrike <= floorStrike) {
+                    ceilingStrike = Math.ceil((spot + 50) / step) * step;
                 }
             }
 
-            // 3. Walls
-            const isBankNifty = (currentInstrument === 'BANKNIFTY');
-            const floorStrike = opt.heaviest_pe ? opt.heaviest_pe.strike : (strat && strat.floorStrike ? strat.floorStrike : (isBankNifty ? 54500 : 22800));
-            const ceilingStrike = opt.heaviest_ce ? opt.heaviest_ce.strike : (strat && strat.ceilingStrike ? strat.ceilingStrike : (isBankNifty ? 55200 : 23300));
-            const floorOi = opt.heaviest_pe ? opt.heaviest_pe.oi : 8500000;
-            const ceilingOi = opt.heaviest_ce ? opt.heaviest_ce.oi : 9200000;
+            const corridorSpanEl = document.getElementById('radar-corridor-span');
+            const corridorWidthEl = document.getElementById('radar-corridor-width');
+            const corridorSubEl = document.getElementById('radar-corridor-sub');
+            const corridorWidth = Math.max(step, ceilingStrike - floorStrike);
 
+            if (corridorSpanEl) {
+                corridorSpanEl.textContent = `${floorStrike.toLocaleString('en-IN')} PE — ${ceilingStrike.toLocaleString('en-IN')} CE`;
+            }
+            if (corridorWidthEl) {
+                corridorWidthEl.textContent = `${corridorWidth} PTS RANGE`;
+            }
+            if (corridorSubEl) {
+                const peOiText = activePe && activePe.oi ? `${(activePe.oi / 100000).toFixed(1)}L PE` : 'Active Floor';
+                const ceOiText = activeCe && activeCe.oi ? `${(activeCe.oi / 100000).toFixed(1)}L CE` : 'Active Ceiling';
+                corridorSubEl.textContent = `Support: ${peOiText} • Resistance: ${ceOiText}`;
+            }
+
+            // Maintain hidden elements for script backwards compatibility
             const floorStrikeEl = document.getElementById('radar-floor-strike');
-            const floorSubEl = document.getElementById('radar-floor-sub');
             const ceilingStrikeEl = document.getElementById('radar-ceiling-strike');
-            const ceilingSubEl = document.getElementById('radar-ceiling-sub');
+            if (floorStrikeEl) floorStrikeEl.textContent = `${floorStrike} PE`;
+            if (ceilingStrikeEl) ceilingStrikeEl.textContent = `${ceilingStrike} CE`;
 
-            if (floorStrikeEl && floorStrike) floorStrikeEl.textContent = `${floorStrike.toLocaleString('en-IN')} PE`;
-            if (floorSubEl && floorOi) floorSubEl.textContent = `${(floorOi / 100000).toFixed(1)} Lakh Contracts Support`;
+            // 5. Synthesize Master Institutional Direction Verdict
+            const isBullishBuildup = (basis !== null && basis > 10) || pcr >= 1.15 || fiiFlow === 'BUYING' || peRatio >= 55;
+            const isBearishBuildup = (basis !== null && basis < -10) || pcr <= 0.85 || fiiFlow === 'SELLING' || peRatio <= 45;
 
-            if (ceilingStrikeEl && ceilingStrike) ceilingStrikeEl.textContent = `${ceilingStrike.toLocaleString('en-IN')} CE`;
-            if (ceilingSubEl && ceilingOi) ceilingSubEl.textContent = `${(ceilingOi / 100000).toFixed(1)} Lakh Contracts Resistance`;
+            // ATM Contract calculations for 1-Lot capital safeguard
+            const lotSize = isBankNifty ? 30 : 75;
+            const atmStrike = spot ? Math.round(spot / step) * step : (isBankNifty ? 54700 : 23050);
+            
+            let atmCeLtp = (opt.atm && opt.atm.ce && opt.atm.ce.ltp) ? opt.atm.ce.ltp : (isBankNifty ? 240 : 100);
+            let atmPeLtp = (opt.atm && opt.atm.pe && opt.atm.pe.ltp) ? opt.atm.pe.ltp : (isBankNifty ? 240 : 105);
 
-            // 4. Hedging Strategy Recommendation for ₹90k Capital
+            if (opt.strikes && opt.strikes.length) {
+                const atmItem = opt.strikes.find(s => s.strike === atmStrike);
+                if (atmItem) {
+                    if (atmItem.ce_ltp) atmCeLtp = atmItem.ce_ltp;
+                    if (atmItem.pe_ltp) atmPeLtp = atmItem.pe_ltp;
+                }
+            }
+
             const titleEl = document.getElementById('hedge-setup-title');
             const descEl = document.getElementById('hedge-setup-desc');
             const legBuyEl = document.getElementById('hedge-leg-buy');
             const legSellEl = document.getElementById('hedge-leg-sell');
+            const marginEl = document.getElementById('hedge-margin');
+            const profitEl = document.getElementById('hedge-max-profit');
+            const lossEl = document.getElementById('hedge-max-loss');
 
-            const isBullishBuildup = (basis !== null && basis > 10) || pcr >= 1.15;
-            const isBearishBuildup = (basis !== null && basis < -10) || pcr <= 0.85;
+            let dirVerdict = 'SIDEWAYS';
+            let dirDirective = '100% CASH PRESERVATION';
+            let dirDetail = '';
 
-            const wingWidth = isBankNifty ? 300 : 150;
+            if (isBullishBuildup && !isBearishBuildup) {
+                dirVerdict = 'STRONG UP (BULLISH)';
+                dirDirective = 'BUY 1 LOT CALL ON DIPS';
+                const ceCost = Math.round(atmCeLtp * lotSize);
+                const slPts = Math.min(25, Math.round(atmCeLtp * 0.25));
+                const tgtPts = Math.round(slPts * 2.2);
 
-            if (isBullishBuildup && floorStrike) {
-                const sellStrike = floorStrike;
-                const buyStrike = floorStrike - wingWidth;
-                if (titleEl) titleEl.textContent = 'RECOMMENDED: BULL PUT CREDIT SPREAD (DEFINED RISK)';
+                if (titleEl) titleEl.textContent = `RECOMMENDED: BUY 1 LOT ${atmStrike.toLocaleString('en-IN')} CE (ATM CALL)`;
                 if (descEl) {
-                    descEl.innerHTML = `Institutions are building <strong class="text-emerald-600 dark:text-emerald-400">Long Futures at a +${basis ? basis.toFixed(1) : ''} pts premium</strong> with heavy Put defense at <strong class="text-slate-900 dark:text-white">${sellStrike.toLocaleString('en-IN')}</strong>. Selling an OTM Put spread behind this wall captures daily theta decay with strictly capped risk.`;
+                    descEl.innerHTML = `Institutions &amp; Options writers are actively defending the <strong class="text-emerald-600 dark:text-emerald-400">${floorStrike.toLocaleString('en-IN')} PE floor</strong> (Futures basis +${basis ? basis.toFixed(1) : '48'} pts). Buy 1 Lot ATM Call with strictly capped premium risk — <strong class="text-slate-900 dark:text-white">zero broker margin penalty and zero naked shorting</strong>.`;
                 }
-                if (legBuyEl) legBuyEl.innerHTML = `<i class="fa-solid fa-shield text-xs text-emerald-500"></i> BUY 1 Lot ${buyStrike.toLocaleString('en-IN')} PE`;
-                if (legSellEl) legSellEl.innerHTML = `<i class="fa-solid fa-hand-holding-dollar text-xs text-blue-500"></i> SELL 1 Lot ${sellStrike.toLocaleString('en-IN')} PE`;
-            } else if (isBearishBuildup && ceilingStrike) {
-                const sellStrike = ceilingStrike;
-                const buyStrike = ceilingStrike + wingWidth;
-                if (titleEl) titleEl.textContent = 'RECOMMENDED: BEAR CALL CREDIT SPREAD (DEFINED RISK)';
+                if (legBuyEl) legBuyEl.innerHTML = `<i class="fa-solid fa-arrow-trend-up text-xs text-emerald-500"></i> BUY 1 Lot ${atmStrike.toLocaleString('en-IN')} CE @ ~₹${Math.round(atmCeLtp)}`;
+                if (legSellEl) legSellEl.innerHTML = `<i class="fa-solid fa-crosshairs text-xs text-blue-500"></i> SL: ₹${Math.max(1, Math.round(atmCeLtp - slPts))} (-${slPts} pts) • TGT: ₹${Math.round(atmCeLtp + tgtPts)} (+${tgtPts} pts)`;
+                if (marginEl) marginEl.textContent = `~₹${ceCost.toLocaleString('en-IN')}`;
+                if (profitEl) profitEl.textContent = `~₹${Math.round(tgtPts * lotSize).toLocaleString('en-IN')}`;
+                if (lossEl) lossEl.textContent = `~₹${Math.round(slPts * lotSize).toLocaleString('en-IN')} Capped`;
+
+                dirDetail = `Institutional Put defense is actively holding at ${floorStrike.toLocaleString('en-IN')} PE while Futures trade at a +${basis ? basis.toFixed(1) : ''} pts premium. Directional bias is UP / BUY CALL ON DIPS.`;
+
+            } else if (isBearishBuildup && !isBullishBuildup) {
+                dirVerdict = 'STRONG DOWN (BEARISH)';
+                dirDirective = 'BUY 1 LOT PUT ON BOUNCES';
+                const peCost = Math.round(atmPeLtp * lotSize);
+                const slPts = Math.min(25, Math.round(atmPeLtp * 0.25));
+                const tgtPts = Math.round(slPts * 2.2);
+
+                if (titleEl) titleEl.textContent = `RECOMMENDED: BUY 1 LOT ${atmStrike.toLocaleString('en-IN')} PE (ATM PUT)`;
                 if (descEl) {
-                    descEl.innerHTML = `Institutions are shorting Futures at a discount, while Call sellers hold an unyielding ceiling at <strong class="text-slate-900 dark:text-white">${sellStrike.toLocaleString('en-IN')}</strong>. Selling a Call spread above this resistance collects theta while capping upside risk.`;
+                    descEl.innerHTML = `Institutional Call writers hold a heavy ceiling at <strong class="text-rose-600 dark:text-rose-400">${ceilingStrike.toLocaleString('en-IN')} CE</strong> with Futures trading at a discount. Buy 1 Lot ATM Put for downside momentum — <strong class="text-slate-900 dark:text-white">zero broker margin penalty and zero naked shorting</strong>.`;
                 }
-                if (legBuyEl) legBuyEl.innerHTML = `<i class="fa-solid fa-shield text-xs text-emerald-500"></i> BUY 1 Lot ${buyStrike.toLocaleString('en-IN')} CE`;
-                if (legSellEl) legSellEl.innerHTML = `<i class="fa-solid fa-hand-holding-dollar text-xs text-rose-500"></i> SELL 1 Lot ${sellStrike.toLocaleString('en-IN')} CE`;
+                if (legBuyEl) legBuyEl.innerHTML = `<i class="fa-solid fa-arrow-trend-down text-xs text-rose-500"></i> BUY 1 Lot ${atmStrike.toLocaleString('en-IN')} PE @ ~₹${Math.round(atmPeLtp)}`;
+                if (legSellEl) legSellEl.innerHTML = `<i class="fa-solid fa-crosshairs text-xs text-blue-500"></i> SL: ₹${Math.max(1, Math.round(atmPeLtp - slPts))} (-${slPts} pts) • TGT: ₹${Math.round(atmPeLtp + tgtPts)} (+${tgtPts} pts)`;
+                if (marginEl) marginEl.textContent = `~₹${peCost.toLocaleString('en-IN')}`;
+                if (profitEl) profitEl.textContent = `~₹${Math.round(tgtPts * lotSize).toLocaleString('en-IN')}`;
+                if (lossEl) lossEl.textContent = `~₹${Math.round(slPts * lotSize).toLocaleString('en-IN')} Capped`;
+
+                dirDetail = `Call sellers are heavily capping rallies at ${ceilingStrike.toLocaleString('en-IN')} CE while FII flows exert downward pressure. Directional bias is DOWN / BUY PUT ON BOUNCES.`;
+
             } else {
-                if (titleEl) titleEl.textContent = 'RECOMMENDED: WIDE IRON CONDOR OR 100% CASH BUFFER';
+                dirVerdict = 'SIDEWAYS (RANGE-BOUND CHOP)';
+                dirDirective = '100% CAPITAL PRESERVATION';
+                if (titleEl) titleEl.textContent = 'RECOMMENDED: 100% CASH BUFFER (DO NOT TRADE CHOP)';
                 if (descEl) {
-                    descEl.innerHTML = `Market is oscillating in a balanced corridor between <strong class="text-slate-900 dark:text-white">${floorStrike.toLocaleString('en-IN')}</strong> and <strong class="text-slate-900 dark:text-white">${ceilingStrike.toLocaleString('en-IN')}</strong>. Capture time decay from both wings or sit 100% in cash to preserve capital.`;
+                    descEl.innerHTML = `Market is oscillating in a balanced corridor between <strong class="text-slate-900 dark:text-white">${floorStrike.toLocaleString('en-IN')} PE</strong> and <strong class="text-slate-900 dark:text-white">${ceilingStrike.toLocaleString('en-IN')} CE</strong>. Time decay burns buyers in chop — <strong class="text-slate-900 dark:text-white">keep 100% of your ₹90k capital safe in cash</strong> until a decisive institutional breakout occurs.`;
                 }
-                if (legBuyEl) legBuyEl.innerHTML = `<i class="fa-solid fa-shield text-xs text-emerald-500"></i> BUY Wings (${(floorStrike - wingWidth).toLocaleString('en-IN')} PE / ${(ceilingStrike + wingWidth).toLocaleString('en-IN')} CE)`;
-                if (legSellEl) legSellEl.innerHTML = `<i class="fa-solid fa-hand-holding-dollar text-xs text-blue-500"></i> SELL Walls (${floorStrike.toLocaleString('en-IN')} PE / ${ceilingStrike.toLocaleString('en-IN')} CE)`;
+                if (legBuyEl) legBuyEl.innerHTML = `<i class="fa-solid fa-shield text-xs text-amber-500"></i> 100% Cash Buffer (₹0 Deployed)`;
+                if (legSellEl) legSellEl.innerHTML = `<i class="fa-solid fa-ban text-xs text-slate-400"></i> Stand Aside • No Forced Trades`;
+                if (marginEl) marginEl.textContent = `₹0 (100% Cash)`;
+                if (profitEl) profitEl.textContent = `Capital Preserved`;
+                if (lossEl) lossEl.textContent = `₹0 Risk`;
+
+                dirDetail = `Index is oscillating between ${floorStrike.toLocaleString('en-IN')} PE and ${ceilingStrike.toLocaleString('en-IN')} CE without directional breakout. Preserve capital and sit on hands.`;
             }
 
-            // 5. Dynamic Shift vs Noise Banner Update
-            const calcOichp = (item) => {
-                if (!item) return 0;
-                if (item.oichp !== undefined && item.oichp !== null) return item.oichp;
-                if (item.oi && item.oich && (item.oi - item.oich) > 0) {
-                    return +((item.oich / (item.oi - item.oich)) * 100).toFixed(1);
-                }
-                return 0;
-            };
-            const peOichp = calcOichp(opt.heaviest_pe);
-            const ceOichp = calcOichp(opt.heaviest_ce);
-            const peOich = opt.heaviest_pe ? (opt.heaviest_pe.oich || 0) : 0;
-            const ceOich = opt.heaviest_ce ? (opt.heaviest_ce.oich || 0) : 0;
-
-            const shortStrike = isBullishBuildup ? floorStrike : (isBearishBuildup ? ceilingStrike : null);
-            const distPts = (spot && shortStrike) ? Math.abs(spot - shortStrike) : 999;
-            const distPct = (spot && shortStrike) ? (distPts / spot) * 100 : 999;
-            const alertThresholdPts = isBankNifty ? 180 : 75;
-
-            let regimeState = 'STABLE';
-            let regimeReason = '';
-            let directiveText = 'HOLD HEDGE / LET THETA WORK';
-
-            if (isBullishBuildup) {
-                const isWallUnwinding = peOichp <= -15 || (peOich < -500000 && peOichp < -8);
-                const isShortBreached = spot && floorStrike && spot <= floorStrike;
-                const isBasisCollapsing = basis !== null && basis < -20;
-
-                if (isShortBreached || isWallUnwinding || isBasisCollapsing) {
-                    regimeState = 'UNWINDING';
-                    if (isShortBreached) {
-                        regimeReason = `Spot (₹${spot.toFixed(0)}) has breached your short Put strike (${floorStrike.toLocaleString('en-IN')}). Big player support failed. Trigger Rule 4 hard stop exit.`;
-                    } else if (isWallUnwinding) {
-                        regimeReason = `Put defenders at ${floorStrike.toLocaleString('en-IN')} PE are aggressively unwinding (${peOichp.toFixed(1)}% / ${(peOich/100000).toFixed(1)}L contracts dumped). Big players are removing their floor.`;
-                    } else {
-                        regimeReason = `Futures basis collapsed to deep discount (${basis.toFixed(1)} pts). Institutional long positioning unwinding.`;
-                    }
-                    directiveText = 'DEFENSIVE EXIT: MOVE TO 100% CASH';
-                } else if (distPts < alertThresholdPts || distPct < 0.35 || ceOichp > 25) {
-                    regimeState = 'PRESSURE';
-                    regimeReason = `Spot is within ${distPts.toFixed(0)} pts (${distPct.toFixed(2)}%) of your short Put strike (${floorStrike.toLocaleString('en-IN')}). Boundary under pressure. Do NOT flip strategy on 5m noise, but get ready to exit if spot crosses ${floorStrike.toLocaleString('en-IN')}.`;
-                    directiveText = 'DO NOT ADD RISK / MONITOR SHORT STRIKE';
-                } else {
-                    regimeState = 'STABLE';
-                    const cushionPts = spot && floorStrike ? (spot - floorStrike).toFixed(0) : '--';
-                    regimeReason = `Put defense at ${floorStrike.toLocaleString('en-IN')} PE is intact (${peOichp >= 0 ? '+' : ''}${peOichp.toFixed(1)}% today) with a comfortable ${cushionPts} pts cushion. 5-minute wicks and minor ticks are random noise — hold your hedge and let time decay compound.`;
-                    directiveText = 'HOLD HEDGE / LET THETA WORK';
-                }
-            } else if (isBearishBuildup) {
-                const isWallUnwinding = ceOichp <= -15 || (ceOich < -500000 && ceOichp < -8);
-                const isShortBreached = spot && ceilingStrike && spot >= ceilingStrike;
-                const isBasisSurging = basis !== null && basis > 45;
-
-                if (isShortBreached || isWallUnwinding || isBasisSurging) {
-                    regimeState = 'UNWINDING';
-                    if (isShortBreached) {
-                        regimeReason = `Spot (₹${spot.toFixed(0)}) has breached your short Call strike (${ceilingStrike.toLocaleString('en-IN')}). Call ceiling failed. Trigger Rule 4 hard stop exit.`;
-                    } else if (isWallUnwinding) {
-                        regimeReason = `Call writers at ${ceilingStrike.toLocaleString('en-IN')} CE are aggressively fleeing/short-covering (${ceOichp.toFixed(1)}% unwinding). Resistance broken.`;
-                    } else {
-                        regimeReason = `Futures basis surged abnormally into heavy premium (+${basis.toFixed(1)} pts). Institutional short ceiling compromised.`;
-                    }
-                    directiveText = 'DEFENSIVE EXIT: MOVE TO 100% CASH';
-                } else if (distPts < alertThresholdPts || distPct < 0.35 || peOichp > 25) {
-                    regimeState = 'PRESSURE';
-                    regimeReason = `Spot is within ${distPts.toFixed(0)} pts (${distPct.toFixed(2)}%) of your short Call strike (${ceilingStrike.toLocaleString('en-IN')}). Do NOT panic flip on 5m noise, but monitor closely.`;
-                    directiveText = 'DO NOT ADD RISK / MONITOR SHORT STRIKE';
-                } else {
-                    regimeState = 'STABLE';
-                    const headroomPts = spot && ceilingStrike ? (ceilingStrike - spot).toFixed(0) : '--';
-                    regimeReason = `Call resistance at ${ceilingStrike.toLocaleString('en-IN')} CE is rock solid (${ceOichp >= 0 ? '+' : ''}${ceOichp.toFixed(1)}% today) with ${headroomPts} pts overhead headroom. 5-min candle oscillations are noise — let theta work.`;
-                    directiveText = 'HOLD HEDGE / LET THETA WORK';
-                }
-            } else {
-                if (peOichp <= -15 || ceOichp <= -15) {
-                    regimeState = 'UNWINDING';
-                    regimeReason = `One of the corridor walls is undergoing severe unwinding (Put ${peOichp.toFixed(1)}%, Call ${ceOichp.toFixed(1)}%). Range breakdown imminent.`;
-                    directiveText = 'EXIT RANGE SPREAD / MOVE TO CASH';
-                } else {
-                    regimeState = 'STABLE';
-                    regimeReason = `Both ${floorStrike.toLocaleString('en-IN')} PE floor and ${ceilingStrike.toLocaleString('en-IN')} CE ceiling are holding steady. Index is oscillating inside the institutional corridor. Capture theta decay from both wings.`;
-                    directiveText = 'HOLD IRON CONDOR / HARVEST THETA';
-                }
-            }
-
+            // 6. Master Verdict Banner Styling
             const shiftBanner = document.getElementById('radar-shift-banner');
             const shiftIconBox = document.getElementById('radar-shift-icon-box');
             const shiftIcon = document.getElementById('radar-shift-icon');
@@ -4377,39 +4428,37 @@
             const actionDirective = document.getElementById('radar-action-directive');
 
             if (shiftBanner && shiftBadge && shiftDetail && actionDirective) {
-                shiftDetail.textContent = regimeReason;
-                actionDirective.textContent = directiveText;
+                shiftBadge.textContent = `INSTITUTIONAL DIRECTION: ${dirVerdict}`;
+                shiftDetail.textContent = dirDetail;
+                actionDirective.textContent = dirDirective;
 
-                if (regimeState === 'UNWINDING') {
-                    shiftBanner.className = 'my-4 p-4 rounded-2xl border transition-all flex flex-col md:flex-row items-start md:items-center justify-between gap-3 shadow-md bg-rose-500/10 border-rose-500/40 text-rose-900 dark:text-rose-200';
-                    if (shiftIconBox) shiftIconBox.className = 'w-10 h-10 rounded-xl bg-rose-500/20 flex items-center justify-center text-rose-600 dark:text-rose-400 shrink-0 text-lg';
-                    if (shiftIcon) shiftIcon.className = 'fa-solid fa-triangle-exclamation animate-pulse';
-                    shiftBadge.textContent = 'CRITICAL INSTITUTIONAL UNWINDING DETECTED';
-                    if (shiftPill) {
-                        shiftPill.textContent = 'REGIME BREAKDOWN';
-                        shiftPill.className = 'text-[10px] px-2 py-0.5 rounded-full font-bold bg-rose-500/20 text-rose-700 dark:text-rose-300 border border-rose-500/30';
-                    }
-                    actionDirective.className = 'px-3.5 py-2 rounded-xl font-black font-mono text-xs shadow-md bg-rose-600 text-white whitespace-nowrap animate-pulse';
-                } else if (regimeState === 'PRESSURE') {
-                    shiftBanner.className = 'my-4 p-4 rounded-2xl border transition-all flex flex-col md:flex-row items-start md:items-center justify-between gap-3 shadow-sm bg-amber-500/10 border-amber-500/30 text-amber-900 dark:text-amber-200';
-                    if (shiftIconBox) shiftIconBox.className = 'w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0 text-lg';
-                    if (shiftIcon) shiftIcon.className = 'fa-solid fa-circle-exclamation';
-                    shiftBadge.textContent = 'INSTITUTIONAL RADAR: BOUNDARY UNDER PRESSURE';
-                    if (shiftPill) {
-                        shiftPill.textContent = 'MONITOR SHORT STRIKE';
-                        shiftPill.className = 'text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/30';
-                    }
-                    actionDirective.className = 'px-3.5 py-2 rounded-xl font-bold font-mono text-xs shadow-sm bg-amber-600 text-white whitespace-nowrap';
-                } else {
-                    shiftBanner.className = 'my-4 p-4 rounded-2xl border transition-all flex flex-col md:flex-row items-start md:items-center justify-between gap-3 shadow-sm bg-emerald-500/10 border-emerald-500/30 text-emerald-900 dark:text-emerald-200';
+                if (dirVerdict.includes('BULLISH')) {
+                    shiftBanner.className = 'my-4 p-4 rounded-2xl border transition-all flex flex-col md:flex-row items-start md:items-center justify-between gap-3 shadow-md bg-emerald-500/10 border-emerald-500/30 text-emerald-900 dark:text-emerald-200';
                     if (shiftIconBox) shiftIconBox.className = 'w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0 text-lg';
-                    if (shiftIcon) shiftIcon.className = 'fa-solid fa-shield-halved';
-                    shiftBadge.textContent = 'INSTITUTIONAL POSITIONING: STABLE (NORMAL 5M NOISE)';
+                    if (shiftIcon) shiftIcon.className = 'fa-solid fa-arrow-trend-up';
                     if (shiftPill) {
-                        shiftPill.textContent = 'WALLS DEFENDED';
+                        shiftPill.textContent = 'FLOWS ALIGNED UP';
                         shiftPill.className = 'text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30';
                     }
-                    actionDirective.className = 'px-3.5 py-2 rounded-xl font-bold font-mono text-xs shadow-sm bg-emerald-600 text-white whitespace-nowrap';
+                    actionDirective.className = 'px-3.5 py-2 rounded-xl font-black font-mono text-xs shadow-md bg-emerald-600 text-white whitespace-nowrap';
+                } else if (dirVerdict.includes('BEARISH')) {
+                    shiftBanner.className = 'my-4 p-4 rounded-2xl border transition-all flex flex-col md:flex-row items-start md:items-center justify-between gap-3 shadow-md bg-rose-500/10 border-rose-500/30 text-rose-900 dark:text-rose-200';
+                    if (shiftIconBox) shiftIconBox.className = 'w-10 h-10 rounded-xl bg-rose-500/20 flex items-center justify-center text-rose-600 dark:text-rose-400 shrink-0 text-lg';
+                    if (shiftIcon) shiftIcon.className = 'fa-solid fa-arrow-trend-down';
+                    if (shiftPill) {
+                        shiftPill.textContent = 'FLOWS ALIGNED DOWN';
+                        shiftPill.className = 'text-[10px] px-2 py-0.5 rounded-full font-bold bg-rose-500/20 text-rose-700 dark:text-rose-300 border border-rose-500/30';
+                    }
+                    actionDirective.className = 'px-3.5 py-2 rounded-xl font-black font-mono text-xs shadow-md bg-rose-600 text-white whitespace-nowrap';
+                } else {
+                    shiftBanner.className = 'my-4 p-4 rounded-2xl border transition-all flex flex-col md:flex-row items-start md:items-center justify-between gap-3 shadow-sm bg-amber-500/10 border-amber-500/30 text-amber-900 dark:text-amber-200';
+                    if (shiftIconBox) shiftIconBox.className = 'w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0 text-lg';
+                    if (shiftIcon) shiftIcon.className = 'fa-solid fa-arrows-left-right';
+                    if (shiftPill) {
+                        shiftPill.textContent = 'CHOPPY RANGE';
+                        shiftPill.className = 'text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/30';
+                    }
+                    actionDirective.className = 'px-3.5 py-2 rounded-xl font-bold font-mono text-xs shadow-sm bg-slate-700 text-white whitespace-nowrap';
                 }
             }
         }
