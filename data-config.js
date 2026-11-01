@@ -5,12 +5,10 @@
 // next to the Firebase copy of the page; GitHub Pages serves it from the repo
 // root.
 //
-// The objects under this prefix are published with `Cache-Control: no-store` by
-// scripts/cloud_dashboard_export.py, so no query-string cache-buster is needed.
-// The bucket's CORS policy allows only the deployed Firebase origin and the
-// GitHub Pages origin, so a cross-origin read from anywhere else is refused by
-// the browser.
+// GitHub Pages serves the published JSON files with `Access-Control-Allow-Origin: *`
+// at zero cloud cost, completely eliminating the need for paid Google Cloud Storage.
 //
-// Set this to '' (empty string) to resolve data relative to the page instead.
 window.DASHBOARD_DATA_BASE_URL =
-    'https://storage.googleapis.com/market-analysis-7dc40-data/dashboard';
+    'https://vikasrworkspace-lab.github.io/nifty-analysis-agent';
+
+
